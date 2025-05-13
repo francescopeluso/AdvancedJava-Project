@@ -4,10 +4,29 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" prefHeight="300" prefWidth="500" spacing="10" stylesheets="@../../../../../../../../css/admin.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<VBox alignment="TOP_CENTER" prefHeight="400" prefWidth="600" spacing="15" stylesheets="@../../../../../../../../css/admin.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="FXMLDocumentController">
    <children>
+   
        <Label style="-fx-font-size: 16px;" text="Pannello Amministratore" />
-       <Button fx:id="uploadDocumentButton" text="Carica Nuovi Documenti" />
-       <Button fx:id="uploadStopwordsButton" text="Carica Stopwords" />
+   
+       <!-- Sezione Lista Documenti -->
+       <VBox alignment="TOP_CENTER" prefWidth="500" spacing="5">
+      <children>
+              <Label style="-fx-font-size: 14px;" text="Documenti Caricati" />
+              <ListView fx:id="documentListView" prefHeight="200" prefWidth="500" />
+      </children>
+       </VBox>
+   
+       <!-- Sezione Upload -->
+       <HBox alignment="CENTER" spacing="20">
+      <children>
+              <Button fx:id="uploadDocumentButton" text="Carica Documento" />
+              <Button fx:id="uploadStopwordsButton" text="Carica Stopwords" />
+      </children>
+       </HBox>
+       <VBox spacing="5" alignment="TOP_CENTER" prefWidth="500">
+        <Label text="Stopwords Correnti" style="-fx-font-size: 14px;"/>
+        <TextArea fx:id="stopwordsTextArea" prefHeight="100" prefWidth="500" wrapText="true"/>
+       </VBox>
    </children>
 </VBox>
