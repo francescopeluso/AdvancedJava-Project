@@ -14,7 +14,7 @@ public class Wordageddon extends Application {
     
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("/it/unisa/diem/ja/g10/assets/view/LoginScreen.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/it/unisa/diem/ja/g10/assets/view/QuizScreen.fxml"));
         
         Scene scene = new Scene(root);
         
