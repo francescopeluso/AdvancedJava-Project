@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="CENTER" prefHeight="250" prefWidth="400" spacing="10" stylesheets="@../../../../../../../../css/result.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+       <Label style="-fx-font-size: 16px;" text="Risultati Gioco" />
+       <Label fx:id="scoreLabel" style="-fx-font-size: 14px;" text="Punteggio: 0" />
+       <Button fx:id="playAgainButton" text="Gioca Ancora" />
+       <Button fx:id="exitButton" text="Esci" />
+   </children>
+</VBox>

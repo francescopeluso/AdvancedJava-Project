@@ -1,0 +1,13 @@
+.label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #1e1e1e;
+}
+
+.text-area {
+    -fx-font-size: 14px;
+    -fx-padding: 10;
+    -fx-wrap-text: true;
+    -fx-border-color: #cccccc;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}

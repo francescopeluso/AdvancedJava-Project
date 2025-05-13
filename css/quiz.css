@@ -1,0 +1,16 @@
+.label {
+    -fx-font-size: 14px;
+    -fx-wrap-text: true;
+    -fx-text-fill: #333;
+}
+
+.radio-button {
+    -fx-font-size: 13px;
+}
+
+.button {
+    -fx-font-size: 14px;
+    -fx-background-color: #2196F3;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+}

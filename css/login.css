@@ -1,0 +1,17 @@
+.label {
+    -fx-font-size: 16px;
+    -fx-text-fill: #2e3b4e;
+}
+
+.text-field, .password-field {
+    -fx-pref-width: 200px;
+    -fx-font-size: 14px;
+}
+
+.button {
+    -fx-font-size: 14px;
+    -fx-padding: 5 15;
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+}
