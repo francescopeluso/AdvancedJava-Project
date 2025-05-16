@@ -4,15 +4,15 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" prefHeight="200" prefWidth="300" spacing="10" stylesheets="@css/login.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<VBox alignment="CENTER" prefHeight="200" prefWidth="300" spacing="10" stylesheets="@css/login.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.diem.ja.g10.assets.view.LoginScreenController">
    <children>
        <Label style="-fx-font-size: 16px;" text="Wordageddon Login" />
        <TextField fx:id="usernameField" promptText="Username" />
        <PasswordField fx:id="passwordField" promptText="Password" />
        <HBox alignment="CENTER" spacing="10" stylesheets="css/login.css">
           <children>
-              <Button fx:id="loginButton" text="Login" />
-              <Button fx:id="registerButton" text="Registrati" />
+              <Button fx:id="loginButton" onAction="#startGame" text="Login" />
+              <Button fx:id="registerButton" onAction="#startGame" text="Registrati" />
           </children>
        </HBox>
    </children>

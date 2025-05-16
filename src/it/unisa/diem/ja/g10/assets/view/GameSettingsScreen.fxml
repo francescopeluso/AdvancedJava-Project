@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.collections.FXCollections?>
 
-<VBox alignment="CENTER" prefHeight="250" prefWidth="400" spacing="10" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<VBox alignment="CENTER" prefHeight="250" prefWidth="400" spacing="10" stylesheets="@css/gamesettings.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.diem.ja.g10.assets.view.GameSettingsScreenController">
    <children>
        <Label style="-fx-font-size: 16px;" text="Seleziona Livello di Difficoltà" />
       <HBox prefHeight="100.0" prefWidth="200.0">
@@ -15,6 +15,6 @@
             <RadioButton mnemonicParsing="false" text="Difficile" />
          </children>
       </HBox>
-       <Button fx:id="startGameButton" text="Inizia Gioco" />
+       <Button fx:id="startGameButton" onAction="#switchToQuizScreen" text="Inizia Gioco" />
    </children>
 </VBox>

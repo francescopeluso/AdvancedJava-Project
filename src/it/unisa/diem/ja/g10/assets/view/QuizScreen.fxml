@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" prefHeight="400" prefWidth="600" spacing="10" stylesheets="@../../../../../../../../css/quiz.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<VBox alignment="CENTER" prefHeight="400" prefWidth="600" spacing="10" stylesheets="@css/quiz.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.diem.ja.g10.assets.view.QuizScreenController">
    <children>
        <Label fx:id="questionLabel" style="-fx-font-size: 14px;" text="Domanda generata dal testo" wrapText="true" />
        <VBox spacing="5">
@@ -15,6 +15,6 @@
               <RadioButton fx:id="optionD" text="Opzione D" />
           </children>
        </VBox>
-       <Button fx:id="nextQuestionButton" text="Prossima Domanda" />
+       <Button fx:id="nextQuestionButton" onAction="#goToNextQuestion" text="Prossima Domanda" />
    </children>
 </VBox>
