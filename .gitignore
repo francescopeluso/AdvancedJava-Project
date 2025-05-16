@@ -1,2 +1,27 @@
 /build/
 /dist/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# macOS
+.DS_Store
+
+# NetBeans
+nbproject/private/
+nbproject/
+nbbuild/
+nbdist/
+out/
+.nb-gradle/
+nb-configuration.xml
+nbactions.xml
