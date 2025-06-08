@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="wordageddon.controller.StartViewController" prefHeight="500" prefWidth="400" stylesheets="@style/StartView.css">
+    <children>
+        <!-- LOGIN VIEW -->
+        <VBox fx:id="loginPane" alignment="CENTER" spacing="12" visible="true" managed="true">
+            <VBox alignment="CENTER" spacing="10" maxWidth="300">
+                <Label text="Login" styleClass="login-title"/>
+                <TextField fx:id="loginEmailField" promptText="Email" />
+                <PasswordField fx:id="loginPasswordField" promptText="Password" />
+                <Button text="Accedi" fx:id="loginButton" onAction="#handleLoginAction" styleClass="login-button"/>
+                <Hyperlink text="Non hai un account? Registrati" onAction="#switchToRegister"/>
+                <Label fx:id="loginErrorLabel" textFill="red" visible="false"/>
+            </VBox>
+        </VBox>
+
+        <!-- REGISTRATION VIEW -->
+        <VBox fx:id="registerPane" alignment="CENTER" spacing="10" visible="false" managed="false">
+            <VBox alignment="CENTER" spacing="8" maxWidth="300">
+                <Label text="Registrazione" styleClass="login-title"/>
+                <TextField fx:id="regFirstNameField" promptText="Nome"/>
+                <TextField fx:id="regLastNameField" promptText="Cognome"/>
+                <TextField fx:id="regUsernameField" promptText="Username"/>
+                <TextField fx:id="regEmailField" promptText="Email"/>
+                <PasswordField fx:id="regPasswordField" promptText="Password"/>
+                <PasswordField fx:id="regConfirmPasswordField" promptText="Conferma Password"/>
+                <Button text="Registrati" fx:id="registerButton" onAction="#handleRegisterAction" styleClass="login-button"/>
+                <Hyperlink text="Hai già un account? Accedi" onAction="#switchToLogin"/>
+                <Label fx:id="registerErrorLabel" textFill="red" visible="false"/>
+            </VBox>
+        </VBox>
+    </children>
+</StackPane>

@@ -1,0 +1,48 @@
+/*
+ *  Questo file contiene le regole CSS per la view "StartView", ovvero
+ *  la pagina di log in/sign up che è l'entry point dell'applicazione
+ */
+
+/* Titolo della pagina */
+.login-title {
+    -fx-font-size: 26px;
+    -fx-text-fill: #2c3e50;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0.2, 1, 1);
+}
+
+/* Campi di input */
+.text-field,
+.password-field {
+    -fx-pref-height: 35px;
+    -fx-font-size: 14px;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 1;
+    -fx-padding: 0 0 0 8;
+}
+
+/* Pulsante login */
+.login-button {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.login-button:hover {
+    -fx-background-color: #2980b9;
+}
+
+.login-button:pressed {
+    -fx-background-color: #2471a3;
+}
+
+/* Messaggio di errore */
+#errorLabel {
+    -fx-text-fill: red;
+    -fx-font-size: 12px;
+}

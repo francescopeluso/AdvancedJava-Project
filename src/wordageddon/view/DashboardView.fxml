@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="wordageddon.controller.DashboardController"
+            stylesheets="@style/DashboardView.css" prefWidth="800.0" prefHeight="600.0">
+    <top>
+        <Label text="Benvenuto nella tua Dashboard!" styleClass="dashboard-title" BorderPane.alignment="CENTER">
+            <BorderPane.margin>
+                <Insets top="30.0" bottom="20.0"/>
+            </BorderPane.margin>
+        </Label>
+    </top>
+    <center>
+        <VBox alignment="CENTER" spacing="30" maxWidth="Infinity" maxHeight="Infinity" fillWidth="true">
+            <Button text="Classifica e Ultime Partite" onAction="#handleLeaderboardAndHistory" 
+                    maxWidth="300" minWidth="300" prefHeight="50"/>
+            <Button text="Gioca una Partita" onAction="#handleStartGame" 
+                    maxWidth="300" minWidth="300" prefHeight="50"/>
+            <Button text="Impostazioni (Admin)" onAction="#handleSettings" 
+                    maxWidth="300" minWidth="300" prefHeight="50"/>
+            <Button text="Logout" onAction="#handleLogout" 
+                    maxWidth="300" minWidth="300" prefHeight="50"/>
+            <VBox.margin>
+                <Insets left="50.0" right="50.0"/>
+            </VBox.margin>
+        </VBox>
+    </center>
+</BorderPane>

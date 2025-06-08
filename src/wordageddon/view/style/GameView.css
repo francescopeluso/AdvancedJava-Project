@@ -1,0 +1,168 @@
+/*
+ * Questo file contiene le regole CSS per la view "GameView",
+ * ovvero l'interfaccia del gioco Wordageddon
+ */
+
+/* Titoli principali */
+.game-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+/* Timer e info */
+.timer-label {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e74c3c;
+}
+
+.info-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #34495e;
+}
+
+/* Domande */
+.question-label {
+    -fx-font-size: 18px;
+    -fx-text-alignment: center;
+    -fx-text-fill: #2c3e50;
+}
+
+.question-number-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #7f8c8d;
+}
+
+/* Opzioni radio button */
+.radio-button {
+    -fx-font-size: 16px;
+    -fx-text-fill: #2c3e50;
+}
+
+.radio-button .text {
+    -fx-wrap-text: true;
+}
+
+/* Opzioni di difficoltà */
+.difficulty-radio {
+    -fx-font-size: 16px;
+    -fx-text-fill: #2c3e50;
+}
+
+/* Bottoni standard */
+.button {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+    -fx-padding: 8 16;
+}
+
+.button:hover {
+    -fx-background-color: #2980b9;
+}
+
+.button:pressed {
+    -fx-background-color: #2471a3;
+}
+
+/* Bottone "Sono Pronto!" */
+.ready-button {
+    -fx-background-color: #27ae60;
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+    -fx-padding: 10 20;
+}
+
+.ready-button:hover {
+    -fx-background-color: #229954;
+}
+
+.ready-button:pressed {
+    -fx-background-color: #1e8449;
+}
+
+/* Bottone "Nuova Partita" */
+.new-game-button {
+    -fx-background-color: #27ae60;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+    -fx-padding: 8 16;
+}
+
+.new-game-button:hover {
+    -fx-background-color: #229954;
+}
+
+.new-game-button:pressed {
+    -fx-background-color: #1e8449;
+}
+
+/* Area documenti */
+.text-area {
+    -fx-font-size: 12px;
+    -fx-font-family: "Courier New", monospace;
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4;
+}
+
+.text-area .content {
+    -fx-background-color: #f8f9fa;
+}
+
+/* Risultati */
+.results-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #27ae60;
+}
+
+.score-label {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.final-message-label {
+    -fx-font-size: 18px;
+    -fx-text-fill: #27ae60;
+}
+
+.results-section-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.detailed-score-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #7f8c8d;
+}
+
+/* Layout containers */
+VBox {
+    -fx-alignment: center;
+}
+
+HBox {
+    -fx-alignment: center;
+}
+
+BorderPane {
+    -fx-background-color: #ffffff;
+}
+
+StackPane {
+    -fx-background-color: #ffffff;
+}
