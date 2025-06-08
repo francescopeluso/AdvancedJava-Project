@@ -32,9 +32,9 @@ import java.util.ArrayList;
  * 3. Question Phase - User answers multiple-choice questions about the documents
  * 4. Results - User sees their score and feedback
  * 
- * @author Wordageddon Team
+ * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 public class GameController {
 

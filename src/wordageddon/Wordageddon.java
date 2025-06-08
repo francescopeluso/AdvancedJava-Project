@@ -14,14 +14,9 @@ import javafx.stage.Stage;
  * frequencies and document content. The game features multiple difficulty
  * levels and provides a comprehensive text analysis learning experience.
  * 
- * The application follows the MVC (Model-View-Controller) pattern with:
- * - Models handling text analysis and game logic
- * - Views defined in FXML files with corresponding CSS styling
- * - Controllers managing user interactions and game flow
- * 
- * @author Francesco Peluso
+ * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 public class Wordageddon extends Application {
     

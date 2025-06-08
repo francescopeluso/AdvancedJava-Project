@@ -28,9 +28,9 @@ import java.nio.file.Files;
  * 4. Filter out empty strings and stopwords
  * 5. Add remaining terms to the Document-Term Matrix
  * 
- * @author Francesco Peluso
+ * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 public class TextAnalysisService {
 

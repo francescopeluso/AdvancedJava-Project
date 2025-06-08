@@ -34,9 +34,9 @@ import java.io.ObjectOutputStream;
  * - Get term frequencies for specific documents
  * - Serialize/deserialize the matrix to/from files
  * 
- * @author Wordageddon Team
+ * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 public class DocumentTermMatrix implements Serializable {
     

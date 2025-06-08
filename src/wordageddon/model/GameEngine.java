@@ -30,9 +30,9 @@ enum Difficulty {
  * The GameEngine works with a DocumentTermMatrix to analyze text documents
  * and generate meaningful questions about word frequencies and distributions.
  * 
- * @author Wordageddon Team
+ * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 public class GameEngine {
 

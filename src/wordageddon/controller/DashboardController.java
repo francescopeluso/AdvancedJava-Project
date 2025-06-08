@@ -27,9 +27,9 @@ import javafx.fxml.FXML;
  * This controller implements the Initializable interface to perform setup
  * operations when the FXML view is loaded.
  * 
- * @author Wordageddon Team
+ * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 public class DashboardController implements Initializable {
 

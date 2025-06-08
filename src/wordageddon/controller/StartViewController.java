@@ -34,9 +34,9 @@ import java.io.IOException;
  * through error labels. Currently includes placeholder logic for database
  * integration which is planned for future implementation.
  * 
- * @author Francesco Peluso
+ * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 public class StartViewController implements Initializable {
 
