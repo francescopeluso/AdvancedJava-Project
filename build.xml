@@ -50,4 +50,19 @@
     nbproject/build-impl.xml and nbproject/jfx-impl.xml.
 
     -->
+
+    <target name="javadoc">
+        <mkdir dir="docs"/>
+        <javadoc
+            destdir="docs"
+            sourcepath="src"
+            packagenames="*"
+            use="true"
+            author="true"
+            version="true"
+            windowtitle="Programmazione Java Avanzata G10 - Wordageddon docs"
+            doctitle="Programmazione Java Avanzata G10 - Wordageddon docs"
+        />
+    </target>
+
 </project>
