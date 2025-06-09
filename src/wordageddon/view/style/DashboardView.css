@@ -1,7 +1,9 @@
-/*
- *  Questo file contiene le regole CSS per la view "DashboardView", ovvero
- *  la dashboard dell'utente dopo aver fatto l'accesso in app
- */
+/* CSS per DashboardView - Dashboard dell'utente */
+
+/* Root */
+.root {
+    -fx-background-color: #ecf0f1;
+}
 
 .dashboard-title {
     -fx-font-size: 26px;
@@ -16,20 +18,30 @@
     -fx-text-fill: white;
     -fx-font-size: 15px;
     -fx-font-weight: bold;
-    -fx-background-radius: 6;
+    -fx-background-radius: 6px;
     -fx-cursor: hand;
-    -fx-padding: 10 20;
+    -fx-padding: 12 25;
+    -fx-pref-height: 50px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 2, 0.3, 0, 1);
 }
 
 .button:hover {
     -fx-background-color: #2980b9;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 3, 0.4, 0, 1);
 }
 
 .button:pressed {
     -fx-background-color: #2471a3;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 1, 0.2, 0, 0);
 }
 
 VBox {
     -fx-alignment: center;
-    -fx-padding: 30 0 0 0;
+    -fx-padding: 30 50 0 50;
+    -fx-spacing: 20;
+}
+
+BorderPane {
+    -fx-background-color: #ffffff;
+    -fx-padding: 20;
 }

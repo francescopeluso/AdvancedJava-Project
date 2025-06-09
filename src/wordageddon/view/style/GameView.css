@@ -1,64 +1,116 @@
-/*
- * Questo file contiene le regole CSS per la view "GameView",
- * ovvero l'interfaccia del gioco Wordageddon
- */
+/* CSS per GameView - Interfaccia del gioco Wordageddon */
 
-/* Titoli principali */
+/* Root */
+.root {
+    -fx-background-color: #ecf0f1;
+}
+
+/* Titoli */
 .game-title {
     -fx-font-size: 24px;
     -fx-font-weight: bold;
     -fx-text-fill: #2c3e50;
+    -fx-padding: 20 0;
 }
 
-/* Timer e info */
-.timer-label {
-    -fx-font-size: 24px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #e74c3c;
-}
-
-.info-label {
-    -fx-font-size: 14px;
-    -fx-text-fill: #34495e;
-}
-
-/* Domande */
 .question-label {
     -fx-font-size: 18px;
-    -fx-text-alignment: center;
     -fx-text-fill: #2c3e50;
+    -fx-wrap-text: true;
+    -fx-padding: 10;
+    -fx-text-alignment: center;
 }
 
 .question-number-label {
     -fx-font-size: 14px;
     -fx-text-fill: #7f8c8d;
+    -fx-padding: 5;
 }
 
-/* Opzioni radio button */
+/* Radio Buttons */
 .radio-button {
     -fx-font-size: 16px;
     -fx-text-fill: #2c3e50;
+    -fx-cursor: hand;
+    -fx-padding: 8 10;
 }
 
 .radio-button .text {
     -fx-wrap-text: true;
 }
 
-/* Opzioni di difficoltà */
+/* Styling del cerchio del radio button */
+.radio-button .radio {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 2px;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-padding: 2px;
+    -fx-pref-width: 18px;
+    -fx-pref-height: 18px;
+}
+
+.radio-button:hover .radio {
+    -fx-border-color: #3498db;
+}
+
+.radio-button:selected .radio {
+    -fx-border-color: #3498db;
+    -fx-background-color: #3498db;
+}
+
+/* Punto interno del radio button selezionato */
+.radio-button:selected .radio .dot {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 6px;
+    -fx-padding: 3px;
+}
+
+/* Radio buttons per difficoltà */
 .difficulty-radio {
     -fx-font-size: 16px;
     -fx-text-fill: #2c3e50;
+    -fx-cursor: hand;
+    -fx-padding: 10 15;
 }
 
-/* Bottoni standard */
+.difficulty-radio .radio {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 2px;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-padding: 2px;
+    -fx-pref-width: 18px;
+    -fx-pref-height: 18px;
+}
+
+.difficulty-radio:hover .radio {
+    -fx-border-color: #27ae60;
+}
+
+.difficulty-radio:selected .radio {
+    -fx-border-color: #27ae60;
+    -fx-background-color: #27ae60;
+}
+
+.difficulty-radio:selected .radio .dot {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 6px;
+    -fx-padding: 3px;
+}
+
+/* Bottoni */
 .button {
     -fx-background-color: #3498db;
     -fx-text-fill: white;
     -fx-font-size: 14px;
     -fx-font-weight: bold;
-    -fx-background-radius: 6;
+    -fx-background-radius: 6px;
     -fx-cursor: hand;
-    -fx-padding: 8 16;
+    -fx-padding: 10 20;
+    -fx-pref-height: 40px;
 }
 
 .button:hover {
@@ -69,15 +121,16 @@
     -fx-background-color: #2471a3;
 }
 
-/* Bottone "Sono Pronto!" */
+/* Bottone Sono Pronto */
 .ready-button {
     -fx-background-color: #27ae60;
     -fx-text-fill: white;
     -fx-font-size: 16px;
     -fx-font-weight: bold;
-    -fx-background-radius: 6;
+    -fx-background-radius: 6px;
     -fx-cursor: hand;
-    -fx-padding: 10 20;
+    -fx-padding: 12 25;
+    -fx-pref-height: 45px;
 }
 
 .ready-button:hover {
@@ -88,15 +141,16 @@
     -fx-background-color: #1e8449;
 }
 
-/* Bottone "Nuova Partita" */
+/* Bottone Nuova Partita */
 .new-game-button {
     -fx-background-color: #27ae60;
     -fx-text-fill: white;
     -fx-font-size: 14px;
     -fx-font-weight: bold;
-    -fx-background-radius: 6;
+    -fx-background-radius: 6px;
     -fx-cursor: hand;
-    -fx-padding: 8 16;
+    -fx-padding: 10 20;
+    -fx-pref-height: 40px;
 }
 
 .new-game-button:hover {
@@ -107,18 +161,40 @@
     -fx-background-color: #1e8449;
 }
 
-/* Area documenti */
+/* Area Documenti */
 .text-area {
     -fx-font-size: 12px;
     -fx-font-family: "Courier New", monospace;
     -fx-background-color: #f8f9fa;
     -fx-border-color: #dee2e6;
     -fx-border-width: 1px;
-    -fx-border-radius: 4;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 10px;
 }
 
 .text-area .content {
     -fx-background-color: #f8f9fa;
+    -fx-background-radius: 4px;
+}
+
+.text-area:focused {
+    -fx-border-color: #3498db;
+    -fx-border-width: 2px;
+}
+
+/* Timer e Info */
+.timer-label {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e74c3c;
+    -fx-padding: 10;
+}
+
+.info-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #34495e;
+    -fx-padding: 5;
 }
 
 /* Risultati */
@@ -126,41 +202,158 @@
     -fx-font-size: 28px;
     -fx-font-weight: bold;
     -fx-text-fill: #27ae60;
+    -fx-padding: 20 0;
 }
 
 .score-label {
     -fx-font-size: 24px;
     -fx-font-weight: bold;
     -fx-text-fill: #2c3e50;
+    -fx-padding: 10;
 }
 
 .final-message-label {
     -fx-font-size: 18px;
     -fx-text-fill: #27ae60;
+    -fx-padding: 10;
 }
 
 .results-section-title {
     -fx-font-size: 16px;
     -fx-font-weight: bold;
     -fx-text-fill: #2c3e50;
+    -fx-padding: 10 0 5 0;
 }
 
 .detailed-score-label {
     -fx-font-size: 14px;
     -fx-text-fill: #7f8c8d;
+    -fx-padding: 5;
 }
 
-/* Layout containers */
+/* Question Review Styles */
+.question-review-scroll {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+.question-review-item {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 15;
+    -fx-spacing: 10;
+}
+
+.question-review-header {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.question-review-text {
+    -fx-font-size: 14px;
+    -fx-text-fill: #34495e;
+    -fx-wrap-text: true;
+    -fx-padding: 5 0;
+}
+
+.answer-correct {
+    -fx-background-color: #d4edda;
+    -fx-border-color: #28a745;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8;
+    -fx-text-fill: #155724;
+}
+
+.answer-incorrect {
+    -fx-background-color: #f8d7da;
+    -fx-border-color: #dc3545;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8;
+    -fx-text-fill: #721c24;
+}
+
+.answer-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.details-button {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+}
+
+.details-button:hover {
+    -fx-background-color: #2980b9;
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+/* TableView Styles */
+.question-review-table {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+.question-review-table .column-header {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 8px;
+}
+
+.question-review-table .table-row-cell {
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.question-review-table .table-row-cell:selected {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+}
+
+.question-review-table .table-cell {
+    -fx-padding: 8px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.question-review-table .table-cell:selected {
+    -fx-text-fill: white;
+}
+
+/* Row coloring for correct/incorrect answers is handled in Java code */
+
+/* Layout Containers */
 VBox {
     -fx-alignment: center;
+    -fx-spacing: 15;
 }
 
 HBox {
     -fx-alignment: center;
+    -fx-spacing: 15;
 }
 
 BorderPane {
     -fx-background-color: #ffffff;
+    -fx-padding: 20;
 }
 
 StackPane {

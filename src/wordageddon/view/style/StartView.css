@@ -1,7 +1,9 @@
-/*
- *  Questo file contiene le regole CSS per la view "StartView", ovvero
- *  la pagina di log in/sign up che è l'entry point dell'applicazione
- */
+/* CSS per StartView - Pagina di login/registrazione */
+
+/* Root */
+.root {
+    -fx-background-color: #ecf0f1;
+}
 
 /* Titolo della pagina */
 .login-title {
@@ -9,6 +11,7 @@
     -fx-text-fill: #2c3e50;
     -fx-font-weight: bold;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0.2, 1, 1);
+    -fx-padding: 0 0 20 0;
 }
 
 /* Campi di input */
@@ -16,11 +19,21 @@
 .password-field {
     -fx-pref-height: 35px;
     -fx-font-size: 14px;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
     -fx-border-color: #bdc3c7;
-    -fx-border-width: 1;
-    -fx-padding: 0 0 0 8;
+    -fx-border-width: 1px;
+    -fx-padding: 0 0 0 12px;
+    -fx-max-width: 280px;
+    -fx-min-width: 280px;
+}
+
+.text-field:focused,
+.password-field:focused {
+    -fx-border-color: #3498db;
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(52, 152, 219, 0.3), 3, 0.5, 0, 0);
 }
 
 /* Pulsante login */
@@ -29,20 +42,61 @@
     -fx-text-fill: white;
     -fx-font-size: 15px;
     -fx-font-weight: bold;
-    -fx-background-radius: 6;
+    -fx-background-radius: 6px;
     -fx-cursor: hand;
+    -fx-pref-height: 40px;
+    -fx-max-width: 280px;
+    -fx-min-width: 280px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 2, 0.3, 0, 1);
 }
 
 .login-button:hover {
     -fx-background-color: #2980b9;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 3, 0.4, 0, 1);
 }
 
 .login-button:pressed {
     -fx-background-color: #2471a3;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 1, 0.2, 0, 0);
 }
 
-/* Messaggio di errore */
-#errorLabel {
-    -fx-text-fill: red;
+/* Hyperlink */
+.hyperlink {
+    -fx-text-fill: #3498db;
+    -fx-underline: false;
     -fx-font-size: 12px;
+    -fx-padding: 10 0 0 0;
+}
+
+.hyperlink:hover {
+    -fx-text-fill: #2980b9;
+    -fx-underline: true;
+}
+
+.hyperlink:visited {
+    -fx-text-fill: #3498db;
+}
+
+/* Messaggi di errore */
+.error-label,
+#loginErrorLabel,
+#registerErrorLabel {
+    -fx-text-fill: #e74c3c;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 0;
+}
+
+/* Layout */
+VBox {
+    -fx-alignment: center;
+    -fx-spacing: 15;
+    -fx-padding: 30;
+}
+
+StackPane {
+    -fx-background-color: #ffffff;
+    -fx-padding: 40;
+    -fx-background-radius: 10px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0.3, 0, 2);
 }

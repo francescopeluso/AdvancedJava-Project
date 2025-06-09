@@ -9,39 +9,45 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.scene.Node;
+import javafx.animation.Timeline;
+import javafx.animation.KeyFrame;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.util.Duration;
 
 import wordageddon.model.GameEngine;
 import wordageddon.model.DocumentTermMatrix;
 import wordageddon.model.TextAnalysisService;
+import wordageddon.model.Question;
+import wordageddon.model.Answer;
+import wordageddon.model.GameSession;
+import wordageddon.service.GameInitializationService;
+import wordageddon.service.DocumentLoadingService;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.ArrayList;
 
 /**
- * Controller class for managing the Wordageddon game flow and user interactions.
- * This controller handles the complete game lifecycle including difficulty selection,
- * document reading phase, question generation and display, and results presentation.
- * 
- * The game consists of four main phases:
- * 1. Difficulty Selection - User chooses between Easy (Facile), Medium (Medio), or Hard (Difficile)
- * 2. Document Reading - User reads selected documents within a time limit
- * 3. Question Phase - User answers multiple-choice questions about the documents
- * 4. Results - User sees their score and feedback
- * 
- * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
- * @version 1.0
- * @since 2025
+ * Controller class for managing the Wordageddon game flow.
+ * Handles difficulty selection, document reading, questions, and results.
  */
 public class GameController {
 
     /** Root container for all game views */
     @FXML private StackPane rootStack;
 
-    // View 1: Difficulty Selection (Difficoltà)
+    // vista 1: selezione difficoltà
     /** Container for the difficulty selection view */
     @FXML private VBox difficultyPane;
     /** Radio button for easy difficulty selection */
@@ -53,7 +59,7 @@ public class GameController {
     /** Toggle group for difficulty selection radio buttons */
     @FXML private ToggleGroup difficultyToggleGroup;
 
-    // View 2: Gameplay (Document Reading Phase)
+    // vista 2: gameplay (fase lettura documenti)
     /** Main container for the gameplay view */
     @FXML private BorderPane gameplayPane;
     /** Label displaying the reading timer countdown */
@@ -69,7 +75,7 @@ public class GameController {
     /** Button to indicate user is ready to start questions */
     @FXML private Button readyButton;
 
-    // View 3: Questions (Domande)
+    // vista 3: domande
     /** Container for the question view */
     @FXML private VBox questionPane;
     /** Label showing the current question number */
@@ -87,7 +93,7 @@ public class GameController {
     /** Toggle group for multiple-choice options */
     @FXML private ToggleGroup optionsToggleGroup;
     
-    // View 4: Results (Risultati)
+    // vista 4: risultati
     /** Container for the results view */
     @FXML private VBox resultsPane;
     /** Label displaying the final score percentage */
@@ -96,8 +102,20 @@ public class GameController {
     @FXML private Label finalMessageLabel;
     /** Label showing detailed score breakdown */
     @FXML private Label detailedScoreLabel;
+    /** Table view for question review */
+    @FXML private TableView<Answer> questionReviewTable;
+    /** Question number column */
+    @FXML private TableColumn<Answer, Integer> questionNumberColumn;
+    /** Question text column */
+    @FXML private TableColumn<Answer, String> questionTextColumn;
+    /** User answer column */
+    @FXML private TableColumn<Answer, String> userAnswerColumn;
+    /** Correct answer column */
+    @FXML private TableColumn<Answer, String> correctAnswerColumn;
+    /** Score column */
+    @FXML private TableColumn<Answer, Double> scoreColumn;
 
-    // Core game components
+    // componenti principali del gioco
     /** Main game engine handling game logic and state */
     private GameEngine gameEngine;
     /** Document-Term Matrix for text analysis */
@@ -111,92 +129,135 @@ public class GameController {
     /** List of documents selected for the current game based on difficulty */
     private List<String> currentGameDocuments;
     
-    // Game state variables
+    // Services for asynchronous operations
+    /** Service for game initialization */
+    private GameInitializationService gameInitializationService;
+    /** Service for document loading */
+    private DocumentLoadingService documentLoadingService;
+    
+    // variabili di stato del gioco
     /** Current question number (0-based index) */
     private int currentQuestionNumber = 0;
     /** Total number of questions for current difficulty */
     private int totalQuestions = 0;
-    /** Number of correctly answered questions */
-    private int correctAnswers = 0;
-    /** List of generated question texts */
-    private List<String> questions;
-    /** List of multiple-choice options for each question */
-    private List<List<String>> questionOptions;
-    /** List of correct answer indices for each question */
-    private List<Integer> correctAnswerIndices;
+    /** Current game session managing questions and answers */
+    private GameSession currentGameSession;
     /** Timeline for the document reading timer */
-    private javafx.animation.Timeline readingTimer;
+    private Timeline readingTimer;
 
     /**
-     * Initializes the game controller by setting up the text analysis service,
-     * loading documents, and creating the Document-Term Matrix.
-     * 
-     * This method is automatically called by JavaFX after loading the FXML file.
-     * It performs the following operations:
-     * 1. Initializes the TextAnalysisService with stopwords
-     * 2. Loads and randomly selects up to 3 documents from the documents directory
-     * 3. Creates a Document-Term Matrix for the selected documents
-     * 4. Initializes the GameEngine with the processed data
-     * 
-     * If any error occurs during initialization, it creates fallback dummy data
-     * to prevent application crashes.
+     * Initializes the game controller by setting up services for asynchronous operations.
+     * Called automatically by JavaFX after loading the FXML file.
      */
     @FXML
     public void initialize() {
-        try {
-            // inizializzo il servizio di analisi del testo
-            textAnalysisService = new TextAnalysisService();
-            textAnalysisService.loadStopwords(new File("stopwords.txt"));
+        // inizializza le colonne della tableview
+        initializeTableView();
+        
+        // Inizializza il gioco in modo asincrono
+        initializeGameAsync();
+    }
+
+    /**
+     * Performs asynchronous game initialization using JavaFX Services.
+     */
+    private void initializeGameAsync() {
+        // Crea e configura il service per l'inizializzazione del gioco
+        gameInitializationService = new GameInitializationService(new File("stopwords.txt"));
+        
+        // Gestisce il completamento dell'inizializzazione
+        gameInitializationService.setOnSucceeded(event -> {
+            GameInitializationService.GameInitializationResult result = 
+                gameInitializationService.getValue();
             
-            // prima ottengo tutti i documenti disponibili
-            File documentsDir = new File("documents/");
-            File[] files = documentsDir.listFiles((dir, name) -> name.endsWith(".txt"));
-            if (files == null || files.length == 0) {
-                throw new IOException("Nessun documento trovato nella directory documents/");
-            }
-            
-            // seleziono 3 documenti a caso
-            List<File> allFiles = new ArrayList<>();
-            for (File file : files) {
-                allFiles.add(file);
-            }
-            Collections.shuffle(allFiles);
-            
-            int numDocuments = Math.min(3, allFiles.size());
-            List<File> selectedFiles = allFiles.subList(0, numDocuments);
-            
-            // creo la DTM solo per i documenti selezionati
-            dtm = new DocumentTermMatrix();
-            for (File file : selectedFiles) {
-                textAnalysisService.processDocument(dtm, file);
-            }
-            
-            // salvo i nomi dei documenti visibili
-            visibleDocuments = new ArrayList<>();
-            documentContents = new ArrayList<>();
-            
-            for (File file : selectedFiles) {
-                String fileName = file.getName();
-                visibleDocuments.add(fileName);
+            if (result.isSuccess()) {
+                textAnalysisService = result.getTextAnalysisService();
+                System.out.println("Inizializzazione del gioco completata con successo!");
                 
-                // carico il contenuto per visualizzarlo
-                try {
-                    String content = new String(Files.readAllBytes(file.toPath()));
-                    documentContents.add(content);
-                } catch (IOException e) {
-                    documentContents.add("Errore nel caricamento del documento " + fileName);
-                }
+                // Ora inizializza il caricamento dei documenti
+                initializeDocumentLoadingAsync();
+            } else {
+                handleInitializationError(result.getErrorMessage());
             }
+        });
+        
+        // Gestisce gli errori durante l'inizializzazione
+        gameInitializationService.setOnFailed(event -> {
+            Throwable exception = gameInitializationService.getException();
+            handleInitializationError("Errore durante l'inizializzazione: " + 
+                (exception != null ? exception.getMessage() : "Errore sconosciuto"));
+        });
+        
+        // Avvia il service
+        gameInitializationService.start();
+    }
+    
+    /**
+     * Performs asynchronous document loading using JavaFX Services.
+     */
+    private void initializeDocumentLoadingAsync() {
+        // Crea e configura il service per il caricamento dei documenti
+        File documentsDir = new File("documents/");
+        documentLoadingService = new DocumentLoadingService(textAnalysisService, documentsDir, 3);
+        
+        // Gestisce il completamento del caricamento
+        documentLoadingService.setOnSucceeded(event -> {
+            DocumentLoadingService.DocumentLoadingResult result = 
+                documentLoadingService.getValue();
             
-            // inizializzo il GameEngine con la DTM e i documenti visibili
+            dtm = result.getDtm();
+            visibleDocuments = result.getVisibleDocuments();
+            documentContents = result.getDocumentContents();
+            
+            // Inizializza il GameEngine con la DTM e i documenti visibili
             gameEngine = new GameEngine(dtm, visibleDocuments);
             
-        } catch (IOException e) {
-            e.printStackTrace();
-            
-            // inizializzazione di fallback
-            handleInitializationError(e.getMessage());
-        }
+            System.out.println("Caricamento documenti completato con successo!");
+            System.out.println("Documenti caricati: " + visibleDocuments.size());
+        });
+        
+        // Gestisce gli errori durante il caricamento
+        documentLoadingService.setOnFailed(event -> {
+            Throwable exception = documentLoadingService.getException();
+            handleInitializationError("Errore durante il caricamento dei documenti: " + 
+                (exception != null ? exception.getMessage() : "Errore sconosciuto"));
+        });
+        
+        // Avvia il service
+        documentLoadingService.start();
+    }
+
+    /**
+     * Initializes the TableView columns for question review.
+     * Sets up cell value factories and row coloring based on answer correctness.
+     */
+    private void initializeTableView() {
+        // configura le factory dei valori delle colonne usando i metodi di Answer e Question
+        questionNumberColumn.setCellValueFactory(cellData -> 
+            new SimpleIntegerProperty(cellData.getValue().getQuestion().getQuestionNumber()).asObject());
+        questionTextColumn.setCellValueFactory(cellData -> 
+            new SimpleStringProperty(cellData.getValue().getQuestion().getQuestionText()));
+        userAnswerColumn.setCellValueFactory(cellData -> 
+            new SimpleStringProperty(cellData.getValue().getSelectedAnswerText()));
+        correctAnswerColumn.setCellValueFactory(cellData -> 
+            new SimpleStringProperty(cellData.getValue().getQuestion().getCorrectAnswerText()));
+        scoreColumn.setCellValueFactory(cellData -> 
+            new SimpleDoubleProperty(cellData.getValue().getScoreContribution()).asObject());
+        
+        // aggiunge colorazione delle righe basata sulla correttezza della risposta
+        questionReviewTable.setRowFactory(tv -> {
+            TableRow<Answer> row = new TableRow<>();
+            row.itemProperty().addListener((obs, oldItem, newItem) -> {
+                if (newItem == null) {
+                    row.setStyle("");
+                } else if (newItem.isCorrect()) {
+                    row.setStyle("-fx-background-color: #d4edda;");
+                } else {
+                    row.setStyle("-fx-background-color: #f8d7da;");
+                }
+            });
+            return row;
+        });
     }
 
     /**
@@ -215,7 +276,7 @@ public class GameController {
         String difficulty = getSelectedDifficulty();
         if (difficulty == null) return;
         
-        // Verifica che il gioco sia correttamente inizializzato
+        // verifica che il gioco sia correttamente inizializzato
         if (!isGameInitialized()) {
             System.err.println("Errore: Gioco non inizializzato correttamente");
             return;
@@ -223,7 +284,7 @@ public class GameController {
 
         int numberOfDocuments;
         
-        // Imposta il numero di domande e documenti basato sulla difficoltà
+        // imposta il numero di domande e documenti basato sulla difficoltà
         switch (difficulty.toLowerCase()) {
             case "facile":
                 totalQuestions = 3;
@@ -245,19 +306,19 @@ public class GameController {
         // inizia il gioco con la difficoltà selezionata
         gameEngine.startGame(difficulty);
         
-        // Prepara i documenti per la difficoltà corrente
+        // prepara i documenti per la difficoltà corrente
         prepareDocumentsForDifficulty(numberOfDocuments);
         
-        // Genera tutte le domande in anticipo
-        generateAllQuestions();
+        // genera tutte le domande in anticipo
+        generateAllQuestions(difficulty);
 
-        // Reset game state
+        // reset game state
         currentQuestionNumber = 0;
-        correctAnswers = 0;
+        // Remove the deprecated correctAnswers counter since GameSession handles scoring
 
         showGameplayView();
 
-        // Avvia il timer per la lettura (30 secondi)
+        // avvia il timer per la lettura (30 secondi)
         startReadingTimer();
     }
 
@@ -269,7 +330,7 @@ public class GameController {
      */
     @FXML
     private void onReady(ActionEvent event) {
-        // L'utente è pronto, ferma il timer e inizia le domande
+        // l'utente è pronto, ferma il timer e inizia le domande
         if (readingTimer != null) {
             readingTimer.stop();
         }
@@ -285,20 +346,20 @@ public class GameController {
     @FXML
     private void onBackToMenu(ActionEvent event) {
         try {
-            // Reset game state
+            // reset game state
             resetGame();
             
-            // Carico la vista della dashboard
+            // carico la vista della dashboard
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/wordageddon/view/DashboardView.fxml"));
             Parent dashboardRoot = loader.load();
             
-            // Ottengo la finestra corrente
+            // ottengo la finestra corrente
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             
-            // Creo una nuova scena con la vista della dashboard
+            // creo una nuova scena con la vista della dashboard
             Scene dashboardScene = new Scene(dashboardRoot);
             
-            // Cambio la scena dello stage
+            // cambio la scena dello stage
             stage.setScene(dashboardScene);
             stage.setTitle("Wordageddon - Dashboard");
             
@@ -308,7 +369,7 @@ public class GameController {
             System.err.println("Errore nel caricamento della dashboard: " + e.getMessage());
             e.printStackTrace();
             
-            // Fallback: mostra solo la schermata di selezione difficoltà
+            // fallback: mostra solo la schermata di selezione difficoltà
             showDifficultyView();
         }
     }
@@ -325,22 +386,21 @@ public class GameController {
         RadioButton selectedOption = (RadioButton) optionsToggleGroup.getSelectedToggle();
         if (selectedOption == null) return;
 
-        // Determina quale opzione è stata selezionata (0-3)
+        // determina quale opzione è stata selezionata (0-3)
         int selectedIndex = -1;
         if (selectedOption == option1) selectedIndex = 0;
         else if (selectedOption == option2) selectedIndex = 1;
         else if (selectedOption == option3) selectedIndex = 2;
         else if (selectedOption == option4) selectedIndex = 3;
 
-        // Verifica se la risposta è corretta
-        boolean correct = (selectedIndex == correctAnswerIndices.get(currentQuestionNumber));
-        if (correct) {
-            correctAnswers++;
+        // sottometti la risposta alla sessione di gioco
+        if (currentGameSession != null) {
+            currentGameSession.submitAnswer(currentQuestionNumber, selectedIndex);
         }
 
         currentQuestionNumber++;
 
-        // Controlla se ci sono altre domande
+        // controlla se ci sono altre domande
         if (currentQuestionNumber < totalQuestions) {
             showNextQuestion();
         } else {
@@ -401,23 +461,27 @@ public class GameController {
      * Recreates the GameEngine with original data and clears all UI elements.
      * This method is called when starting a new game or returning to menu.
      */
-    // Metodo per resettare lo stato del gioco
+    // metodo per resettare lo stato del gioco
     private void resetGame() {
         if (gameEngine != null && dtm != null && visibleDocuments != null) {
             gameEngine = new GameEngine(dtm, visibleDocuments);
         }
         
-        // Clear all UI elements
+        // pulisce tutti gli elementi UI
         clearDocumentViews();
         clearQuestionView();
         resetTimer();
+        clearTableView();
+        
+        // reset game session
+        currentGameSession = null;
     }
     
     /**
      * Clears all document text areas by removing their content.
      * Used when resetting the game state.
      */
-    // Metodo per pulire le viste dei documenti
+    // metodo per pulire le viste dei documenti
     private void clearDocumentViews() {
         doc1.clear();
         doc2.clear();
@@ -428,10 +492,10 @@ public class GameController {
      * Clears the question view by resetting question text and deselecting all options.
      * Used when resetting the game state.
      */
-    // Metodo per pulire la vista delle domande
+    // metodo per pulire la vista delle domande
     private void clearQuestionView() {
         questionLabel.setText("");
-        // Deseleziona tutte le opzioni
+        // deseleziona tutte le opzioni
         if (optionsToggleGroup.getSelectedToggle() != null) {
             optionsToggleGroup.getSelectedToggle().setSelected(false);
         }
@@ -441,9 +505,36 @@ public class GameController {
      * Resets the timer display to initial state (00:00).
      * Used when resetting the game state.
      */
-    // Metodo per resettare il timer
+    // metodo per resettare il timer
     private void resetTimer() {
         timerLabel.setText("00:00");
+    }
+    
+    /**
+     * Clears the table view by removing all data.
+     * Used when resetting the game state.
+     */
+    private void clearTableView() {
+        if (questionReviewTable != null) {
+            questionReviewTable.getItems().clear();
+        }
+    }
+    
+    /**
+     * Populates the question review table with data from the current game session.
+     * Uses Answer objects directly instead of creating separate row objects.
+     */
+    private void populateQuestionReviewTable() {
+        if (currentGameSession == null || questionReviewTable == null) {
+            return;
+        }
+        
+        // usa direttamente la lista di Answer dal GameSession
+        List<Answer> answers = currentGameSession.getAnswers();
+        ObservableList<Answer> tableData = FXCollections.observableArrayList(answers);
+        
+        // imposta i dati nella tabella
+        questionReviewTable.setItems(tableData);
     }
     
     /**
@@ -451,7 +542,7 @@ public class GameController {
      * 
      * @return true if GameEngine, DTM, visible documents, and document contents are all initialized and non-empty
      */
-    // Metodo per verificare se il gioco è inizializzato correttamente
+    // metodo per verificare se il gioco è inizializzato correttamente
     private boolean isGameInitialized() {
         return gameEngine != null && dtm != null && 
                visibleDocuments != null && !visibleDocuments.isEmpty() &&
@@ -464,7 +555,7 @@ public class GameController {
      * 
      * @param message the error message to log
      */
-    // Metodo per gestire gli errori di inizializzazione
+    // metodo per gestire gli errori di inizializzazione
     private void handleInitializationError(String message) {
         System.err.println("Errore di inizializzazione: " + message);
         
@@ -554,16 +645,16 @@ public class GameController {
         final int READING_TIME_SECONDS = 30;
         final int READY_BUTTON_DELAY = 10; // Mostra il pulsante dopo 10 secondi
         
-        readingTimer = new javafx.animation.Timeline();
+        readingTimer = new Timeline();
         readingTimer.setCycleCount(READING_TIME_SECONDS + 1);
         
-        final javafx.beans.property.IntegerProperty timeLeft = new javafx.beans.property.SimpleIntegerProperty(READING_TIME_SECONDS);
+        final IntegerProperty timeLeft = new SimpleIntegerProperty(READING_TIME_SECONDS);
         
         timerLabel.setText("Tempo rimasto: " + timeLeft.get() + "s");
         readyButton.setVisible(false); // Nascondi il pulsante inizialmente
         
         readingTimer.getKeyFrames().add(
-            new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1), e -> {
+            new KeyFrame(Duration.seconds(1), e -> {
                 timeLeft.set(timeLeft.get() - 1);
                 timerLabel.setText("Tempo rimasto: " + timeLeft.get() + "s");
                 
@@ -597,8 +688,9 @@ public class GameController {
      */
     // Metodo per mostrare la prima domanda
     private void showFirstQuestion() {
-        if (questions != null && !questions.isEmpty()) {
-            showQuestionView(questions.get(currentQuestionNumber));
+        if (currentGameSession != null && currentGameSession.getQuestions() != null && !currentGameSession.getQuestions().isEmpty()) {
+            Question question = currentGameSession.getQuestions().get(currentQuestionNumber);
+            showQuestionView(question.getQuestionText());
             updateQuestionOptions();
         }
     }
@@ -609,8 +701,9 @@ public class GameController {
      */
     // Metodo per mostrare la prossima domanda
     private void showNextQuestion() {
-        if (currentQuestionNumber < questions.size()) {
-            showQuestionView(questions.get(currentQuestionNumber));
+        if (currentGameSession != null && currentQuestionNumber < currentGameSession.getQuestions().size()) {
+            Question question = currentGameSession.getQuestions().get(currentQuestionNumber);
+            showQuestionView(question.getQuestionText());
             updateQuestionOptions();
         }
     }
@@ -621,8 +714,9 @@ public class GameController {
      */
     // Metodo per aggiornare le opzioni della domanda corrente
     private void updateQuestionOptions() {
-        if (questionOptions != null && currentQuestionNumber < questionOptions.size()) {
-            List<String> options = questionOptions.get(currentQuestionNumber);
+        if (currentGameSession != null && currentQuestionNumber < currentGameSession.getQuestions().size()) {
+            Question question = currentGameSession.getQuestions().get(currentQuestionNumber);
+            List<String> options = question.getOptions();
             
             option1.setText(options.size() > 0 ? options.get(0) : "");
             option2.setText(options.size() > 1 ? options.get(1) : "");
@@ -642,19 +736,20 @@ public class GameController {
      * The number of questions generated depends on the selected difficulty level.
      */
     // Metodo per generare tutte le domande
-    private void generateAllQuestions() {
-        questions = new ArrayList<>();
-        questionOptions = new ArrayList<>();
-        correctAnswerIndices = new ArrayList<>();
+    private void generateAllQuestions(String difficulty) {
+        List<Question> questions = new ArrayList<>();
         
         for (int i = 0; i < totalQuestions; i++) {
             // Genera una domanda casuale
             if (Math.random() < 0.5) {
-                generateFrequencyQuestion();
+                generateFrequencyQuestion(questions);
             } else {
-                generateMostFrequentWordQuestion();
+                generateMostFrequentWordQuestion(questions);
             }
         }
+        
+        // Crea una nuova sessione di gioco con le domande generate
+        currentGameSession = new GameSession(difficulty, questions);
     }
     
     /**
@@ -663,24 +758,23 @@ public class GameController {
      * with the correct frequency and plausible alternatives.
      */
     // Metodo per generare una domanda sulla frequenza
-    private void generateFrequencyQuestion() {
+    private void generateFrequencyQuestion(List<Question> questions) {
         if (currentGameDocuments == null || currentGameDocuments.isEmpty()) {
             return;
         }
         
         String doc = currentGameDocuments.get((int)(Math.random() * currentGameDocuments.size()));
-        java.util.Map<String, Integer> termFreq = dtm.getTermsForDocument(doc);
+        Map<String, Integer> termFreq = dtm.getTermsForDocument(doc);
         
         if (!termFreq.isEmpty()) {
-            java.util.List<String> words = new java.util.ArrayList<>(termFreq.keySet());
+            List<String> words = new ArrayList<>(termFreq.keySet());
             String word = words.get((int)(Math.random() * words.size()));
             int correctFreq = termFreq.get(word);
             
-            String question = String.format("Quante volte compare la parola \"%s\" nel documento \"%s\"?", word, doc);
-            questions.add(question);
+            String questionText = String.format("Quante volte compare la parola \"%s\" nel documento \"%s\"?", word, doc);
             
             // Genera opzioni multiple
-            java.util.Set<Integer> options = new java.util.HashSet<>();
+            Set<Integer> options = new HashSet<>();
             options.add(correctFreq);
             
             while (options.size() < 4) {
@@ -689,9 +783,9 @@ public class GameController {
                 options.add(option);
             }
             
-            java.util.List<String> optionStrings = new java.util.ArrayList<>();
-            java.util.List<Integer> optionsList = new java.util.ArrayList<>(options);
-            java.util.Collections.shuffle(optionsList);
+            List<String> optionStrings = new ArrayList<>();
+            List<Integer> optionsList = new ArrayList<>(options);
+            Collections.shuffle(optionsList);
             
             int correctIndex = -1;
             for (int i = 0; i < optionsList.size(); i++) {
@@ -701,8 +795,9 @@ public class GameController {
                 }
             }
             
-            questionOptions.add(optionStrings);
-            correctAnswerIndices.add(correctIndex);
+            // Crea oggetto Question e aggiungilo alla lista
+            Question question = new Question(questions.size() + 1, questionText, optionStrings, correctIndex);
+            questions.add(question);
         }
     }
     
@@ -712,41 +807,41 @@ public class GameController {
      * most frequent word and other words from the same document as alternatives.
      */
     // Metodo per generare una domanda sulla parola più frequente
-    private void generateMostFrequentWordQuestion() {
+    private void generateMostFrequentWordQuestion(List<Question> questions) {
         if (currentGameDocuments == null || currentGameDocuments.isEmpty()) {
             return;
         }
         
         String doc = currentGameDocuments.get((int)(Math.random() * currentGameDocuments.size()));
-        java.util.Map<String, Integer> termFreq = dtm.getTermsForDocument(doc);
+        Map<String, Integer> termFreq = dtm.getTermsForDocument(doc);
         
         if (!termFreq.isEmpty()) {
             String correctWord = termFreq.entrySet().stream()
-                    .max(java.util.Map.Entry.comparingByValue())
-                    .map(java.util.Map.Entry::getKey).orElse("");
+                    .max(Map.Entry.comparingByValue())
+                    .map(Map.Entry::getKey).orElse("");
             
-            String question = String.format("Quale parola compare più spesso nel documento \"%s\"?", doc);
-            questions.add(question);
+            String questionText = String.format("Quale parola compare più spesso nel documento \"%s\"?", doc);
             
             // Genera opzioni multiple con parole casuali dal documento
-            java.util.Set<String> options = new java.util.HashSet<>();
+            Set<String> options = new HashSet<>();
             options.add(correctWord);
             
-            java.util.List<String> allWords = new java.util.ArrayList<>(termFreq.keySet());
-            java.util.Collections.shuffle(allWords);
+            List<String> allWords = new ArrayList<>(termFreq.keySet());
+            Collections.shuffle(allWords);
             
             for (String word : allWords) {
                 if (options.size() >= 4) break;
                 options.add(word);
             }
             
-            java.util.List<String> optionsList = new java.util.ArrayList<>(options);
-            java.util.Collections.shuffle(optionsList);
+            List<String> optionsList = new ArrayList<>(options);
+            Collections.shuffle(optionsList);
             
             int correctIndex = optionsList.indexOf(correctWord);
             
-            questionOptions.add(optionsList);
-            correctAnswerIndices.add(correctIndex);
+            // Crea oggetto Question e aggiungilo alla lista
+            Question question = new Question(questions.size() + 1, questionText, optionsList, correctIndex);
+            questions.add(question);
         }
     }
     
@@ -756,6 +851,7 @@ public class GameController {
      * - 80%+ : "Eccellente! Hai una ottima comprensione dei testi!"
      * - 60-79%: "Buon lavoro! Puoi ancora migliorare."
      * - <60%  : "Continua a praticare per migliorare le tue capacità di analisi testuale."
+     * Also automatically populates the question review table.
      */
     // Metodo per mostrare i risultati finali
     private void showResultsView() {
@@ -764,20 +860,32 @@ public class GameController {
         questionPane.setVisible(false);
         resultsPane.setVisible(true);
         
-        double percentage = (double) correctAnswers / totalQuestions * 100;
-        scoreLabel.setText(String.format("Punteggio: %d/%d (%.1f%%)", correctAnswers, totalQuestions, percentage));
-        
-        String message;
-        if (percentage >= 80) {
-            message = "Eccellente! Hai una ottima comprensione dei testi!";
-        } else if (percentage >= 60) {
-            message = "Buon lavoro! Puoi ancora migliorare.";
-        } else {
-            message = "Continua a praticare per migliorare le tue capacità di analisi testuale.";
+        if (currentGameSession != null) {
+            // Calcola il punteggio finale e la percentuale
+            
+            double finalScore = currentGameSession.getTotalScore();
+            int totalQuestions = currentGameSession.getQuestions().size();
+            int correctCount = currentGameSession.getCorrectAnswersCount();
+            double percentage = (double) correctCount / totalQuestions * 100;
+            
+            scoreLabel.setText(String.format("Punteggio: %.2f/%.0f (%.1f%%)", 
+                finalScore, (double)totalQuestions, percentage));
+            
+            String message;
+            if (percentage >= 80) {
+                message = "Eccellente! Hai una ottima comprensione dei testi!";
+            } else if (percentage >= 60) {
+                message = "Buon lavoro! Puoi ancora migliorare.";
+            } else {
+                message = "Continua a praticare per migliorare le tue capacità di analisi testuale.";
+            }
+            
+            finalMessageLabel.setText(message);
+            detailedScoreLabel.setText(String.format("Risposte corrette: %d su %d", correctCount, totalQuestions));
+            
+            // Popola la tabella di revisione delle domande
+            populateQuestionReviewTable();
         }
-        
-        finalMessageLabel.setText(message);
-        detailedScoreLabel.setText(String.format("Risposte corrette: %d su %d", correctAnswers, totalQuestions));
     }
 
     /**
@@ -791,5 +899,16 @@ public class GameController {
         // Reset del gioco e torna alla selezione difficoltà
         resetGame();
         showDifficultyView();
+    }
+    
+    /**
+     * Handles the show question review action by displaying detailed question results.
+     * Always populates the question review TableView with user answers and correct answers.
+     * 
+     * @param event the action event triggered by clicking the show details button
+     */
+    @FXML
+    private void onShowQuestionReview(ActionEvent event) {
+        populateQuestionReviewTable();
     }
 }

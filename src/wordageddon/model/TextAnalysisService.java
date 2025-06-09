@@ -11,22 +11,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 /**
- * Service class responsible for analyzing text documents and extracting meaningful terms.
- * This service handles the processing of text files by normalizing content, filtering 
- * stopwords, and populating a Document-Term Matrix with word frequencies.
- * 
- * The service provides functionality for:
- * - Loading and managing stopwords from external files
- * - Processing individual documents or entire directories
- * - Text normalization (lowercase conversion, special character removal)
- * - Integration with the DocumentTermMatrix for frequency tracking
- * 
- * Text processing workflow:
- * 1. Load content from text files
- * 2. Normalize text (convert to lowercase, remove punctuation)
- * 3. Split into individual words
- * 4. Filter out empty strings and stopwords
- * 5. Add remaining terms to the Document-Term Matrix
+ * Service for analyzing text documents and "tokenize" their content into a Document-Term Matrix (DTM).
+ * Handles text normalization, stopword filtering, and Document-Term Matrix population.
  * 
  * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0
@@ -39,25 +25,22 @@ public class TextAnalysisService {
 
     /**
      * Constructs a new TextAnalysisService with an empty stopwords set.
-     * The service is ready to process documents but should load stopwords
-     * using {@link #loadStopwords(File)} for optimal text filtering.
+     * 
+     * Note: by default, the service does not load any stopwords. You should load them
+     * using {@link #loadStopwords(File)} for proper functionality.
      */
     public TextAnalysisService() {
         this.stopwords = new HashSet<>();
     }
 
     /**
-     * Loads stopwords from a specified file into the internal stopwords set.
-     * Stopwords are common words (articles, prepositions, etc.) that should be
-     * filtered out during text analysis to focus on meaningful content.
+     * Loads stopwords from the specified file.
      * 
-     * File format expectations:
-     * - One stopword per line
-     * - Lines starting with "//" are treated as comments and ignored
-     * - All stopwords are converted to lowercase for case-insensitive matching
+     * The file should contain one stopword per line.
+     * Comments are supported (lines starting with "//" are ignored).
      * 
      * @param stopwordsFile the file containing stopwords to load
-     * @throws IOException if the file cannot be read or does not exist
+     * @throws IOException if the file cannot be read
      */
     public void loadStopwords(File stopwordsFile) throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(stopwordsFile))) {
@@ -70,21 +53,11 @@ public class TextAnalysisService {
     }
 
     /**
-     * Processes all .txt files in the specified directory and adds their term frequencies
-     * to the provided Document-Term Matrix. This method processes multiple documents
-     * in batch, making it efficient for analyzing entire document collections.
+     * Processes all .txt files in the specified directory and adds their terms to the DTM.
      * 
-     * Processing steps for each file:
-     * 1. Read the complete file content
-     * 2. Convert to lowercase and remove non-alphabetic characters (except àèéìòù)
-     * 3. Split into individual words
-     * 4. Filter out empty strings and stopwords
-     * 5. Add each valid term to the DTM with the filename as document identifier
-     * 
-     * @param dtm the Document-Term Matrix to populate with term frequencies
+     * @param dtm the Document-Term Matrix to populate
      * @param documentsDir the directory containing .txt files to process
-     * @throws IOException if the directory is invalid, empty, or files cannot be read
-     * @throws RuntimeException if individual file reading fails during processing
+     * @throws IOException if the directory is invalid or files cannot be read
      */
     public void processDocuments(DocumentTermMatrix dtm, File documentsDir) throws IOException {
 
@@ -113,19 +86,11 @@ public class TextAnalysisService {
     }
 
     /**
-     * Processes a single document file and adds its term frequencies to the 
-     * provided Document-Term Matrix. This method is useful for processing
-     * individual files or when selective document processing is required.
+     * Processes a single document and adds its terms to the DTM.
      * 
-     * Text normalization process:
-     * - Converts all text to lowercase
-     * - Removes all non-alphabetic characters except Italian accented vowels (àèéìòù)
-     * - Splits text into words using whitespace as delimiter
-     * - Filters out empty strings and loaded stopwords
-     * 
-     * @param dtm the Document-Term Matrix to populate with term frequencies
-     * @param file the specific file to process and analyze
-     * @throws IOException if the file cannot be read or does not exist
+     * @param dtm the Document-Term Matrix to populate
+     * @param file the file to process
+     * @throws IOException if the file cannot be read
      */
     public void processDocument(DocumentTermMatrix dtm, File file) throws IOException {
         String content = new String(Files.readAllBytes(file.toPath()));
@@ -136,16 +101,7 @@ public class TextAnalysisService {
 
 
     /**
-     * Main method for testing and demonstrating the TextAnalysisService functionality.
-     * This method creates a complete workflow example showing how to:
-     * 1. Initialize the service and load stopwords
-     * 2. Create a Document-Term Matrix
-     * 3. Process documents from a directory
-     * 4. Display results and term frequencies
-     * 
-     * Expected file structure:
-     * - stopwords.txt in the project root
-     * - documents/ directory containing doc1.txt, doc2.txt, doc3.txt
+     * Main method for testing TextAnalysisService functionality.
      * 
      * @param args command line arguments (not used)
      */

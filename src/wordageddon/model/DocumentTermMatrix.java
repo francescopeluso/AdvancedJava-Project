@@ -16,32 +16,18 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 /**
- * Document-Term Matrix implementation for text analysis in the Wordageddon game.
+ * Document-Term Matrix implementation for text analysis.
  * 
- * This class represents a data structure that stores the frequency of terms (words)
- * across multiple documents. It implements a matrix where:
- * - Rows represent documents
- * - Columns represent unique terms/words
- * - Values represent the frequency of each term in each document
- * 
- * The implementation uses nested HashMaps for efficient storage and retrieval:
- * - Outer Map: document ID - term frequencies for that document
- * - Inner Map: term - frequency count in the document
- * 
- * Features:
- * - Add terms and track their frequencies per document
- * - Retrieve all unique terms across all documents
- * - Get term frequencies for specific documents
- * - Serialize/deserialize the matrix to/from files
+ * Stores word frequencies across multiple documents using nested HashMaps.
+ * Supports serialization for data persistence over multiple gameplay sessions.
  * 
  * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0
- * @since 2025
  */
 public class DocumentTermMatrix implements Serializable {
     
     /** Serial version UID for serialization compatibility */
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;    // lo uso per garantire compatibilità tra versioni della classe serializzate (è una buona pratica)
     
     /** 
      * The main data structure representing the Document-Term Matrix.

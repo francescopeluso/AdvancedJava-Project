@@ -38,20 +38,26 @@ public class GameEngine {
 
     /** The Document-Term Matrix containing analyzed text data */
     private final DocumentTermMatrix dtm;
+
     /** List of document names available for the current game session */
     private final List<String> documents;
+
     /** Set of all unique terms across all documents */
     private final Set<String> allTerms;
+
     /** Random number generator for question selection */
     private final Random random = new Random();
     
-    // Game state fields
+    // campi di stato del gioco
     /** Current difficulty level selected by the player */
     private String currentDifficulty;
+
     /** The current question text being asked */
     private String currentQuestion;
+
     /** The correct answer to the current question */
     private String currentAnswer;
+
     /** Flag indicating whether a game session is currently active */
     private boolean gameStarted = false;
 
@@ -102,7 +108,7 @@ public class GameEngine {
         
         boolean isCorrect = currentAnswer.equalsIgnoreCase(answer.trim());
         
-        // Generate next question after answering
+        // genera la prossima domanda dopo aver risposto
         generateNewQuestion();
         
         return isCorrect;
@@ -122,7 +128,7 @@ public class GameEngine {
      * This is called internally after each answer submission or game start.
      */
     private void generateNewQuestion() {
-        // Randomly choose between different question types
+        // sceglie casualmente tra diversi tipi di domande
         if (random.nextBoolean()) {
             generateFrequencyQuestionWithAnswer();
         } else {

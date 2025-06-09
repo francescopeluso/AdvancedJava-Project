@@ -9,30 +9,19 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.VBox;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.application.Platform;
 import java.io.IOException;
+import wordageddon.service.AuthenticationService;
+import wordageddon.service.SceneNavigationService;
 
 /**
- * Controller class for the initial start screen of the Wordageddon application.
- * This controller manages user authentication flow including both login and registration
- * functionality. It provides a dual-panel interface where users can switch between
- * login and registration forms.
- * 
- * Key features:
- * - User login with email/password validation
- * - New user registration with comprehensive form validation
- * - Email format validation using regex patterns
- * - Password confirmation for registration
- * - Error messaging and user feedback
- * - Seamless transition to dashboard upon successful authentication
- * 
- * The controller implements form validation and provides visual feedback
- * through error labels. Currently includes placeholder logic for database
- * integration which is planned for future implementation.
+ * Controller for the start screen managing login and registration.
  * 
  * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0
@@ -40,88 +29,79 @@ import java.io.IOException;
  */
 public class StartViewController implements Initializable {
 
-    // Login form components
-    /** Button to trigger login action */
+    // componenti del form di login
+    /** Login button */
     @FXML
     private Button loginButton;
-    /** Container for the login form panel */
+    /** Login form container */
     @FXML
     private VBox loginPane;
-    /** Text field for user email input in login form */
+    /** Email input field */
     @FXML
     private TextField loginEmailField;
-    /** Password field for user password input in login form */
+    /** Password input field */
     @FXML
     private PasswordField loginPasswordField;
-    /** Label for displaying login error messages */
+    /** Login error message label */
     @FXML
     private Label loginErrorLabel;
     
-    // Registration form components
-    /** Container for the registration form panel */
+    // componenti del form di registrazione
+    /** Registration form container */
     @FXML
     private VBox registerPane;
-    /** Text field for first name input in registration form */
+    /** First name input field */
     @FXML
     private TextField regFirstNameField;
-    /** Text field for last name input in registration form */
+    /** Last name input field */
     @FXML
     private TextField regLastNameField;
-    /** Text field for username input in registration form */
+    /** Username input field */
     @FXML
     private TextField regUsernameField;
-    /** Text field for email input in registration form */
+    /** Email input field */
     @FXML
     private TextField regEmailField;
-    /** Password field for password input in registration form */
+    /** Password input field */
     @FXML
     private PasswordField regPasswordField;
-    /** Password field for password confirmation in registration form */
+    /** Password confirmation field */
     @FXML
     private PasswordField regConfirmPasswordField;
-    /** Button to trigger registration action */
+    /** Registration button */
     @FXML
     private Button registerButton;
-    /** Label for displaying registration error messages */
+    /** Registration error message label */
     @FXML
     private Label registerErrorLabel;
 
+    // Services for asynchronous operations
+    /** Service for user authentication */
+    private AuthenticationService authenticationService;
+    /** Service for scene navigation */
+    private SceneNavigationService sceneNavigationService;
+
     /**
-     * Initializes the start view controller.
-     * This method is automatically called by JavaFX after loading the FXML file.
-     * Currently serves as a placeholder for future initialization logic such as
-     * setting up default form states or loading user preferences.
+     * Initializes the controller.
      * 
-     * @param url the location used to resolve relative paths for the root object, or null if unknown
-     * @param rb the resources used to localize the root object, or null if not localized
+     * @param url the location used to resolve relative paths
+     * @param rb the resources used to localize the root object
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
+        // Initialize UI components
+        loginErrorLabel.setVisible(false);
+        registerErrorLabel.setVisible(false);
     }
 
     /**
-     * Handles user login action with comprehensive input validation.
-     * This method processes the login form submission by validating user input,
-     * checking email format, and attempting authentication. Upon successful validation,
-     * the user is redirected to the main dashboard.
+     * Handles login action with input validation using asynchronous authentication.
+     * Validates email format and redirects to dashboard on success.
      * 
-     * Validation steps:
-     * 1. Checks that both email and password fields are not empty
-     * 2. Validates email format using regex pattern
-     * 3. Authenticates user credentials (placeholder for database integration)
-     * 4. Redirects to dashboard on success or displays error messages
-     * 
-     * Email regex pattern: ^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$
-     * - Accepts alphanumeric characters, dots, and hyphens before @
-     * - Requires @ symbol
-     * - Accepts domain name with dot and 2+ letter extension
-     * 
-     * @param event the action event triggered by clicking the login button
+     * @param event the login button click event
      */
     @FXML
     private void handleLoginAction(ActionEvent event) {
-
         // prendo tutti i valori inseriti
         String email = loginEmailField.getText().trim();
         String password = loginPasswordField.getText().trim();
@@ -141,32 +121,94 @@ public class StartViewController implements Initializable {
             return;
         }
 
-        // TODO - LOGICA LOGIN DA IMPLEMENTARE CON DB
-        System.out.println("Login con: " + email + " / " + password);
+        // Disabilita il pulsante di login durante l'operazione
+        loginButton.setDisable(true);
         loginErrorLabel.setVisible(false);
 
-        // per ora porto direttamente alla dashboard, indifferentemente se il login è corretto o meno
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/wordageddon/view/DashboardView.fxml"));
-            Parent root = loader.load();
-            Stage stage = (Stage) loginPane.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            loginErrorLabel.setText("Errore nel caricamento della dashboard.");
-            loginErrorLabel.setVisible(true);
-        }
+        // Crea e configura il service di autenticazione
+        AuthenticationService.UserCredentials credentials = 
+            new AuthenticationService.UserCredentials(email, password);
+        authenticationService = new AuthenticationService(
+            AuthenticationService.AuthenticationType.LOGIN, credentials);
 
+        // Gestisce il completamento dell'autenticazione
+        authenticationService.setOnSucceeded(authEvent -> {
+            AuthenticationService.AuthenticationResult result = authenticationService.getValue();
+            
+            if (result.isSuccess()) {
+                System.out.println("Login con: " + email + " completato con successo!");
+                
+                // Avvia la navigazione alla dashboard
+                navigateToDashboard();
+            } else {
+                Platform.runLater(() -> {
+                    loginErrorLabel.setText(result.getErrorMessage());
+                    loginErrorLabel.setVisible(true);
+                    loginButton.setDisable(false);
+                });
+            }
+        });
+
+        // Gestisce gli errori durante l'autenticazione
+        authenticationService.setOnFailed(authEvent -> {
+            Platform.runLater(() -> {
+                Throwable exception = authenticationService.getException();
+                loginErrorLabel.setText("Errore durante il login: " + 
+                    (exception != null ? exception.getMessage() : "Errore sconosciuto"));
+                loginErrorLabel.setVisible(true);
+                loginButton.setDisable(false);
+            });
+        });
+
+        // Avvia il service di autenticazione
+        authenticationService.start();
     }
 
     /**
-     * Switches the interface from login view to registration view.
-     * This method hides the login panel and makes the registration panel visible,
-     * allowing users to access the new user registration form. The visibility
-     * and management properties are updated to ensure proper layout behavior.
+     * Navigates to the dashboard using asynchronous scene loading.
+     */
+    private void navigateToDashboard() {
+        Stage stage = (Stage) loginPane.getScene().getWindow();
+        sceneNavigationService = new SceneNavigationService(
+            "/wordageddon/view/DashboardView.fxml", 
+            "Wordageddon - Dashboard", 
+            stage);
+
+        // Gestisce il completamento della navigazione
+        sceneNavigationService.setOnSucceeded(navEvent -> {
+            SceneNavigationService.NavigationResult result = sceneNavigationService.getValue();
+            
+            Platform.runLater(() -> {
+                if (result.isSuccess()) {
+                    sceneNavigationService.applySceneToStage(result);
+                    stage.show();
+                } else {
+                    loginErrorLabel.setText(result.getErrorMessage());
+                    loginErrorLabel.setVisible(true);
+                }
+                loginButton.setDisable(false);
+            });
+        });
+
+        // Gestisce gli errori durante la navigazione
+        sceneNavigationService.setOnFailed(navEvent -> {
+            Platform.runLater(() -> {
+                Throwable exception = sceneNavigationService.getException();
+                loginErrorLabel.setText("Errore nel caricamento della dashboard: " + 
+                    (exception != null ? exception.getMessage() : "Errore sconosciuto"));
+                loginErrorLabel.setVisible(true);
+                loginButton.setDisable(false);
+            });
+        });
+
+        // Avvia il service di navigazione
+        sceneNavigationService.start();
+    }
+
+    /**
+     * Switches from login view to registration view.
      * 
-     * @param event the action event triggered by clicking the switch to register link
+     * @param event the switch button click event
      */
     @FXML
     private void switchToRegister(ActionEvent event) {
@@ -177,26 +219,10 @@ public class StartViewController implements Initializable {
     }
 
     /**
-     * Handles user registration action with comprehensive form validation.
-     * This method processes the registration form submission by validating all
-     * required fields, checking email format, and confirming password match.
+     * Handles registration action with form validation using asynchronous authentication.
+     * Validates all fields, email format, and password confirmation.
      * 
-     * Validation process:
-     * 1. Ensures all required fields (name, surname, username, email, passwords) are filled
-     * 2. Validates email format using the same regex pattern as login
-     * 3. Confirms that password and confirmation password match exactly
-     * 4. Processes registration (placeholder for database integration)
-     * 5. Displays appropriate error messages for validation failures
-     * 
-     * Required fields:
-     * - First Name (nome)
-     * - Last Name (cognome) 
-     * - Username
-     * - Email (with format validation)
-     * - Password
-     * - Password Confirmation (must match password)
-     * 
-     * @param event the action event triggered by clicking the register button
+     * @param event the register button click event
      */
     @FXML
     private void handleRegisterAction(ActionEvent event) {
@@ -219,8 +245,8 @@ public class StartViewController implements Initializable {
         // verifico correttezza del formato della mail inserita
         String emailRegex = "^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$";
         if (!email.matches(emailRegex)) {
-            loginErrorLabel.setText("Formato email non valido.");
-            loginErrorLabel.setVisible(true);
+            registerErrorLabel.setText("Formato email non valido.");
+            registerErrorLabel.setVisible(true);
             return;
         }
 
@@ -231,18 +257,83 @@ public class StartViewController implements Initializable {
             return;
         }
 
-        // TODO - LOGICA REGISTRAZIONE DA IMPLEMENTARE CON DB
-        System.out.println("Registrazione: " + nome + " " + cognome + ", Username: " + username + ", Email: " + email);
+        // Disabilita il pulsante di registrazione durante l'operazione
+        registerButton.setDisable(true);
         registerErrorLabel.setVisible(false);
+
+        // Crea e configura il service di autenticazione per la registrazione
+        AuthenticationService.UserCredentials credentials = 
+            new AuthenticationService.UserCredentials(email, password, nome, cognome, username);
+        authenticationService = new AuthenticationService(
+            AuthenticationService.AuthenticationType.REGISTRATION, credentials);
+
+        // Gestisce il completamento della registrazione
+        authenticationService.setOnSucceeded(authEvent -> {
+            AuthenticationService.AuthenticationResult result = authenticationService.getValue();
+            
+            Platform.runLater(() -> {
+                if (result.isSuccess()) {
+                    System.out.println("Registrazione: " + nome + " " + cognome + 
+                        ", Username: " + username + ", Email: " + email + " completata con successo!");
+                    
+                    // Mostra un messaggio di successo e torna al login
+                    registerErrorLabel.setText("Registrazione completata con successo! Effettua il login.");
+                    registerErrorLabel.setStyle("-fx-text-fill: green;");
+                    registerErrorLabel.setVisible(true);
+                    
+                    // Pulisce i campi e torna al login dopo 2 secondi
+                    clearRegistrationFields();
+                    
+                    // Torna automaticamente al login
+                    Platform.runLater(() -> {
+                        try {
+                            Thread.sleep(2000);
+                            switchToLogin(null);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    });
+                } else {
+                    registerErrorLabel.setText(result.getErrorMessage());
+                    registerErrorLabel.setStyle("-fx-text-fill: red;");
+                    registerErrorLabel.setVisible(true);
+                }
+                registerButton.setDisable(false);
+            });
+        });
+
+        // Gestisce gli errori durante la registrazione
+        authenticationService.setOnFailed(authEvent -> {
+            Platform.runLater(() -> {
+                Throwable exception = authenticationService.getException();
+                registerErrorLabel.setText("Errore durante la registrazione: " + 
+                    (exception != null ? exception.getMessage() : "Errore sconosciuto"));
+                registerErrorLabel.setStyle("-fx-text-fill: red;");
+                registerErrorLabel.setVisible(true);
+                registerButton.setDisable(false);
+            });
+        });
+
+        // Avvia il service di autenticazione
+        authenticationService.start();
     }
 
     /**
-     * Switches the interface from registration view back to login view.
-     * This method hides the registration panel and makes the login panel visible,
-     * allowing users to return to the login form. The visibility and management
-     * properties are updated to ensure proper layout behavior.
+     * Clears all registration form fields.
+     */
+    private void clearRegistrationFields() {
+        regFirstNameField.clear();
+        regLastNameField.clear();
+        regUsernameField.clear();
+        regEmailField.clear();
+        regPasswordField.clear();
+        regConfirmPasswordField.clear();
+    }
+
+    /**
+     * Switches from registration view back to login view.
      * 
-     * @param event the action event triggered by clicking the switch to login link
+     * @param event the switch button click event
      */
     @FXML
     private void switchToLogin(ActionEvent event) {
