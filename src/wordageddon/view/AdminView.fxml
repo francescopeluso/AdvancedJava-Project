@@ -1,14 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.Insets?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="$CONTROLLER_NAME$"
-            prefHeight="400.0" prefWidth="600.0" >
-
-</AnchorPane>
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="wordageddon.controller.AdminController" spacing="20" styleClass="app-container" stylesheets="@../../resources/styles/application.css">
+   
+   <!-- Header with Logo -->
+   <HBox alignment="CENTER_LEFT" spacing="15.0" styleClass="app-header">
+      <children>
+         <ImageView fitHeight="50.0" fitWidth="50.0" preserveRatio="true" styleClass="logo">
+            <image>
+               <Image url="@../../resources/logo.png" />
+            </image>
+         </ImageView>
+         <Label fx:id="adminTitleLabel" styleClass="page-title" text="Pannello Amministratore" />
+      </children>
+   </HBox>
+   
+   <!-- User Management Section -->
+   <VBox spacing="15" styleClass="table-container">
+      <Label styleClass="section-title" text="Gestione Utenti" />
+      
+      <!-- User Table -->
+      <TableView fx:id="usersTableView" prefHeight="300" styleClass="app-table">
+         <columns>
+            <TableColumn fx:id="userIdColumn" prefWidth="60" text="ID" />
+            <TableColumn fx:id="usernameColumn" prefWidth="120" text="Username" />
+            <TableColumn fx:id="firstNameColumn" prefWidth="100" text="Nome" />
+            <TableColumn fx:id="lastNameColumn" prefWidth="100" text="Cognome" />
+            <TableColumn fx:id="emailColumn" prefWidth="180" text="Email" />
+            <TableColumn fx:id="isAdminColumn" prefWidth="80" text="Admin" />
+         </columns>
+      </TableView>
+      
+      <!-- User Management Buttons -->
+      <HBox spacing="10" alignment="CENTER_LEFT">
+         <Button fx:id="refreshUsersButton" onAction="#handleRefreshUsers" styleClass="btn-secondary" text="Aggiorna Lista" />
+         <Button fx:id="promoteUserButton" onAction="#handlePromoteUser" styleClass="btn-success" text="Promuovi Admin" />
+         <Button fx:id="demoteUserButton" onAction="#handleDemoteUser" styleClass="btn-danger" text="Rimuovi Admin" />
+      </HBox>
+   </VBox>
+   
+   <!-- Game Statistics Section -->
+   <VBox spacing="15" styleClass="stats-container">
+      <Label styleClass="section-title" text="Statistiche Gioco" />
+      
+      <HBox spacing="30" alignment="CENTER">
+         <VBox spacing="5" styleClass="stat-card">
+            <Label styleClass="stat-label" text="Utenti Totali:" />
+            <Label fx:id="totalUsersLabel" styleClass="stat-value" text="0" />
+         </VBox>
+         
+         <VBox spacing="5" styleClass="stat-card">
+            <Label styleClass="stat-label" text="Partite Totali:" />
+            <Label fx:id="totalGamesLabel" styleClass="stat-value" text="0" />
+         </VBox>
+         
+         <VBox spacing="5" styleClass="stat-card">
+            <Label styleClass="stat-label" text="Amministratori:" />
+            <Label fx:id="totalAdminsLabel" styleClass="stat-value" text="0" />
+         </VBox>
+      </HBox>
+   </VBox>
+   
+   <!-- Navigation Buttons -->
+   <HBox spacing="15" styleClass="footer-actions" alignment="CENTER">
+      <Button fx:id="backButton" onAction="#handleBack" styleClass="btn-primary" text="Torna alla Dashboard" />
+   </HBox>
+</VBox>

@@ -13,6 +13,8 @@ import javafx.concurrent.Task;
  */
 public class AuthenticationService extends Service<AuthenticationService.AuthenticationResult> {
 
+    private final GameIntegrationService gameIntegrationService;
+
     public enum AuthenticationType {
         LOGIN, REGISTRATION
     }
@@ -49,7 +51,7 @@ public class AuthenticationService extends Service<AuthenticationService.Authent
         private final String lastName;
         private final String username;
 
-        // Costruttore per il login
+        // costruttore per il login
         public UserCredentials(String email, String password) {
             this.email = email;
             this.password = password;
@@ -58,7 +60,7 @@ public class AuthenticationService extends Service<AuthenticationService.Authent
             this.username = null;
         }
 
-        // Costruttore per la registrazione
+        // costruttore per la registrazione
         public UserCredentials(String email, String password, String firstName, String lastName, String username) {
             this.email = email;
             this.password = password;
@@ -86,6 +88,7 @@ public class AuthenticationService extends Service<AuthenticationService.Authent
     public AuthenticationService(AuthenticationType authenticationType, UserCredentials credentials) {
         this.authenticationType = authenticationType;
         this.credentials = credentials;
+        this.gameIntegrationService = new GameIntegrationService();
     }
 
     @Override
@@ -104,16 +107,19 @@ public class AuthenticationService extends Service<AuthenticationService.Authent
                 updateMessage("Verifica credenziali...");
                 updateProgress(0, 100);
 
-                // Simula il ritardo di rete per la query del database
+                // simula il ritardo di rete per la query del database
                 Thread.sleep(1000);
                 updateProgress(50, 100);
 
                 updateMessage("Accesso in corso...");
                 
-                // TODO: Implementare l'autenticazione reale con database
-                // Per ora, simula un login riuscito
-                boolean loginSuccess = validateEmailFormat(credentials.getEmail()) && 
-                                     !credentials.getPassword().isEmpty();
+                // autentica l'utente con il database
+                wordageddon.model.User user = gameIntegrationService.authenticateUser(
+                    credentials.getEmail(), 
+                    credentials.getPassword()
+                );
+                
+                boolean loginSuccess = user != null;
 
                 Thread.sleep(500);
                 updateProgress(100, 100);
@@ -130,7 +136,7 @@ public class AuthenticationService extends Service<AuthenticationService.Authent
                 updateMessage("Validazione dati...");
                 updateProgress(0, 100);
 
-                // Valida i dati di registrazione
+                // valida i dati di registrazione
                 if (!validateEmailFormat(credentials.getEmail())) {
                     return new AuthenticationResult(false, "Formato email non valido", null, AuthenticationType.REGISTRATION);
                 }
@@ -145,20 +151,36 @@ public class AuthenticationService extends Service<AuthenticationService.Authent
                 updateMessage("Verifica disponibilità email...");
                 updateProgress(50, 100);
 
-                // TODO: Implementare il controllo reale della disponibilità email nel database
-                // Simula il ritardo di rete
+                // controlla se l'username è disponibile
+                if (!gameIntegrationService.isUsernameAvailable(credentials.getUsername())) {
+                    return new AuthenticationResult(false, "Username già in uso", null, AuthenticationType.REGISTRATION);
+                }
+                
                 Thread.sleep(1000);
 
                 updateMessage("Creazione account...");
                 updateProgress(75, 100);
 
-                // TODO: Implementare la creazione reale dell'utente nel database
+                // Create user in database
+                boolean userCreated = gameIntegrationService.registerUser(
+                    credentials.getUsername(),
+                    credentials.getFirstName(),
+                    credentials.getLastName(),
+                    credentials.getPassword(),
+                    credentials.getEmail(),
+                    false // regular user, not admin
+                );
+                
                 Thread.sleep(500);
 
                 updateProgress(100, 100);
-                updateMessage("Registrazione completata!");
-
-                return new AuthenticationResult(true, null, credentials.getEmail(), AuthenticationType.REGISTRATION);
+                
+                if (userCreated) {
+                    updateMessage("Registrazione completata!");
+                    return new AuthenticationResult(true, null, credentials.getEmail(), AuthenticationType.REGISTRATION);
+                } else {
+                    return new AuthenticationResult(false, "Errore durante la registrazione", null, AuthenticationType.REGISTRATION);
+                }
             }
 
             private boolean validateEmailFormat(String email) {

@@ -51,7 +51,7 @@ public class GameSession {
         }
         
         this.difficulty = difficulty;
-        this.questions = Collections.unmodifiableList(new ArrayList<>(questions)); // Create immutable copy
+        this.questions = Collections.unmodifiableList(new ArrayList<>(questions)); // crea una copia immutabile
         this.answers = new ArrayList<>();
         this.startTime = System.currentTimeMillis();
         this.isCompleted = false;

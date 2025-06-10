@@ -4,34 +4,73 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.text.*?>
+<?import javafx.scene.image.*?>
 
-<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="wordageddon.controller.StartViewController" prefHeight="500" prefWidth="400" stylesheets="@style/StartView.css">
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="wordageddon.controller.StartViewController" stylesheets="@../../resources/styles/application.css">
     <children>
         <!-- LOGIN VIEW -->
-        <VBox fx:id="loginPane" alignment="CENTER" spacing="12" visible="true" managed="true">
-            <VBox alignment="CENTER" spacing="10" maxWidth="300">
-                <Label text="Login" styleClass="login-title"/>
-                <TextField fx:id="loginEmailField" promptText="Email" />
-                <PasswordField fx:id="loginPasswordField" promptText="Password" />
-                <Button text="Accedi" fx:id="loginButton" onAction="#handleLoginAction" styleClass="login-button"/>
-                <Hyperlink text="Non hai un account? Registrati" onAction="#switchToRegister"/>
-                <Label fx:id="loginErrorLabel" textFill="red" visible="false"/>
+        <VBox fx:id="loginPane" alignment="CENTER" spacing="20" visible="true" managed="true" styleClass="card-container">
+            <VBox alignment="CENTER" spacing="15" maxWidth="350">
+                <!-- Logo -->
+                <ImageView fitHeight="80" fitWidth="80" preserveRatio="true" styleClass="logo">
+                    <image>
+                        <Image url="@../../resources/logo.png"/>
+                    </image>
+                </ImageView>
+                
+                <Label text="Wordageddon" styleClass="main-title"/>
+                <Label text="Accedi al tuo account" styleClass="section-title"/>
+                
+                <VBox spacing="10" alignment="CENTER">
+                    <Label text="Email:" styleClass="field-label"/>
+                    <TextField fx:id="loginEmailField" promptText="Inserisci la tua email" styleClass="text-field"/>
+                    
+                    <Label text="Password:" styleClass="field-label"/>
+                    <PasswordField fx:id="loginPasswordField" promptText="Inserisci la password" styleClass="text-field"/>
+                </VBox>
+                
+                <Button text="Accedi" fx:id="loginButton" onAction="#handleLoginAction" styleClass="primary-button"/>
+                <Hyperlink text="Non hai un account? Registrati" onAction="#switchToRegister" styleClass="info-label"/>
+                <Label fx:id="loginErrorLabel" textFill="#e74c3c" visible="false" styleClass="info-label"/>
             </VBox>
         </VBox>
 
         <!-- REGISTRATION VIEW -->
-        <VBox fx:id="registerPane" alignment="CENTER" spacing="10" visible="false" managed="false">
-            <VBox alignment="CENTER" spacing="8" maxWidth="300">
-                <Label text="Registrazione" styleClass="login-title"/>
-                <TextField fx:id="regFirstNameField" promptText="Nome"/>
-                <TextField fx:id="regLastNameField" promptText="Cognome"/>
-                <TextField fx:id="regUsernameField" promptText="Username"/>
-                <TextField fx:id="regEmailField" promptText="Email"/>
-                <PasswordField fx:id="regPasswordField" promptText="Password"/>
-                <PasswordField fx:id="regConfirmPasswordField" promptText="Conferma Password"/>
-                <Button text="Registrati" fx:id="registerButton" onAction="#handleRegisterAction" styleClass="login-button"/>
-                <Hyperlink text="Hai già un account? Accedi" onAction="#switchToLogin"/>
-                <Label fx:id="registerErrorLabel" textFill="red" visible="false"/>
+        <VBox fx:id="registerPane" alignment="CENTER" spacing="20" visible="false" managed="false" styleClass="card-container">
+            <VBox alignment="CENTER" spacing="15" maxWidth="350">
+                <!-- Logo -->
+                <ImageView fitHeight="80" fitWidth="80" preserveRatio="true" styleClass="logo">
+                    <image>
+                        <Image url="@../../resources/logo.png"/>
+                    </image>
+                </ImageView>
+                
+                <Label text="Wordageddon" styleClass="main-title"/>
+                <Label text="Crea un nuovo account" styleClass="section-title"/>
+                
+                <VBox spacing="10" alignment="CENTER">
+                    <Label text="Nome:" styleClass="field-label"/>
+                    <TextField fx:id="regFirstNameField" promptText="Inserisci il tuo nome" styleClass="text-field"/>
+                    
+                    <Label text="Cognome:" styleClass="field-label"/>
+                    <TextField fx:id="regLastNameField" promptText="Inserisci il tuo cognome" styleClass="text-field"/>
+                    
+                    <Label text="Username:" styleClass="field-label"/>
+                    <TextField fx:id="regUsernameField" promptText="Scegli un username" styleClass="text-field"/>
+                    
+                    <Label text="Email:" styleClass="field-label"/>
+                    <TextField fx:id="regEmailField" promptText="Inserisci la tua email" styleClass="text-field"/>
+                    
+                    <Label text="Password:" styleClass="field-label"/>
+                    <PasswordField fx:id="regPasswordField" promptText="Scegli una password" styleClass="text-field"/>
+                    
+                    <Label text="Conferma Password:" styleClass="field-label"/>
+                    <PasswordField fx:id="regConfirmPasswordField" promptText="Conferma la password" styleClass="text-field"/>
+                </VBox>
+                
+                <Button text="Registrati" fx:id="registerButton" onAction="#handleRegisterAction" styleClass="success-button"/>
+                <Hyperlink text="Hai già un account? Accedi" onAction="#switchToLogin" styleClass="info-label"/>
+                <Label fx:id="registerErrorLabel" textFill="#e74c3c" visible="false" styleClass="info-label"/>
             </VBox>
         </VBox>
     </children>

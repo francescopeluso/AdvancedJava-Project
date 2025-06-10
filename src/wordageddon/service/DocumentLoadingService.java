@@ -72,7 +72,7 @@ public class DocumentLoadingService extends Service<DocumentLoadingService.Docum
                 updateMessage("Caricamento documenti...");
                 updateProgress(0, 100);
 
-                // Ottieni tutti i documenti disponibili
+                // ottieni tutti i documenti disponibili
                 File[] files = documentsDirectory.listFiles((dir, name) -> name.endsWith(".txt"));
                 if (files == null || files.length == 0) {
                     throw new IOException("Nessun documento trovato nella directory documents/");
@@ -81,7 +81,7 @@ public class DocumentLoadingService extends Service<DocumentLoadingService.Docum
                 updateMessage("Selezione documenti casuali...");
                 updateProgress(20, 100);
 
-                // Seleziona documenti casuali
+                // seleziona documenti casuali
                 List<File> allFiles = new ArrayList<>();
                 Collections.addAll(allFiles, files);
                 Collections.shuffle(allFiles);
@@ -92,7 +92,7 @@ public class DocumentLoadingService extends Service<DocumentLoadingService.Docum
                 updateMessage("Creazione Document-Term Matrix...");
                 updateProgress(40, 100);
 
-                // Crea la DTM per i documenti selezionati
+                // crea la DTM per i documenti selezionati
                 DocumentTermMatrix dtm = new DocumentTermMatrix();
                 int processedFiles = 0;
                 
@@ -111,7 +111,7 @@ public class DocumentLoadingService extends Service<DocumentLoadingService.Docum
                 updateMessage("Caricamento contenuti documenti...");
                 updateProgress(70, 100);
 
-                // Carica i nomi e contenuti dei documenti
+                // carica i nomi e contenuti dei documenti
                 List<String> visibleDocuments = new ArrayList<>();
                 List<String> documentContents = new ArrayList<>();
                 

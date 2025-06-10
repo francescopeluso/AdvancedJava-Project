@@ -37,10 +37,10 @@ public class DocumentProcessingTask extends Task<Void> {
 
     @Override
     protected Void call() throws Exception {
-        updateMessage("Processo...  " + documentFile.getName() + "...");
+        updateMessage("Processo...  " + documentFile.getName() + "...");
         updateProgress(0, 100);
 
-        // Processa il documento
+        // processa il documento
         textAnalysisService.processDocument(dtm, documentFile);
 
         updateMessage("Completato: " + documentFile.getName());

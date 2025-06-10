@@ -27,6 +27,8 @@ import wordageddon.model.Answer;
 import wordageddon.model.GameSession;
 import wordageddon.service.GameInitializationService;
 import wordageddon.service.DocumentLoadingService;
+import wordageddon.service.GameIntegrationService;
+import wordageddon.service.UserSession;
 
 import java.io.File;
 import java.io.IOException;
@@ -134,6 +136,8 @@ public class GameController {
     private GameInitializationService gameInitializationService;
     /** Service for document loading */
     private DocumentLoadingService documentLoadingService;
+    /** Service for database integration */
+    private GameIntegrationService gameIntegrationService;
     
     // variabili di stato del gioco
     /** Current question number (0-based index) */
@@ -153,6 +157,9 @@ public class GameController {
     public void initialize() {
         // inizializza le colonne della tableview
         initializeTableView();
+        
+        // inizializza i servizi
+        gameIntegrationService = new GameIntegrationService();
         
         // Inizializza il gioco in modo asincrono
         initializeGameAsync();
@@ -885,6 +892,20 @@ public class GameController {
             
             // Popola la tabella di revisione delle domande
             populateQuestionReviewTable();
+            
+            // Salva la sessione di gioco nel database
+            if (currentGameSession.isCompleted()) {
+                try {
+                    int sessionId = gameIntegrationService.saveCurrentUserGameSession(currentGameSession);
+                    if (sessionId > 0) {
+                        System.out.println("Sessione di gioco salvata con ID: " + sessionId);
+                    } else {
+                        System.err.println("Errore nel salvare la sessione di gioco");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Errore nel salvare la sessione di gioco: " + e.getMessage());
+                }
+            }
         }
     }
 

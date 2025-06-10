@@ -100,9 +100,20 @@ public class SceneNavigationService extends Service<SceneNavigationService.Navig
      */
     public void applySceneToStage(NavigationResult result) {
         if (result.isSuccess() && targetStage != null) {
+            // salva le dimensioni correnti della finestra prima di cambiare scena
+            double currentWidth = targetStage.getWidth();
+            double currentHeight = targetStage.getHeight();
+            boolean isMaximized = targetStage.isMaximized();
+            
             targetStage.setScene(result.getScene());
             if (sceneTitle != null && !sceneTitle.isEmpty()) {
                 targetStage.setTitle(sceneTitle);
+            }
+            
+            // ripristina le dimensioni precedenti se la finestra non era massimizzata
+            if (!isMaximized) {
+                targetStage.setWidth(currentWidth);
+                targetStage.setHeight(currentHeight);
             }
         }
     }

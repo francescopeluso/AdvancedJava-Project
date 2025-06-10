@@ -87,7 +87,7 @@ public class DocumentTermMatrixPersistenceService extends Service<Boolean> {
                     updateProgress(80, 100);
                     updateMessage("Verifica integrità file...");
                     
-                    // Verifica che il file sia stato scritto correttamente
+                    // verifica che il file sia stato scritto correttamente
                     File savedFile = new File(filePath);
                     if (!savedFile.exists() || savedFile.length() == 0) {
                         throw new IOException("Il file non è stato salvato correttamente");
@@ -126,7 +126,7 @@ public class DocumentTermMatrixPersistenceService extends Service<Boolean> {
                     updateProgress(90, 100);
                     updateMessage("Validazione dati caricati...");
                     
-                    // Validazione di base
+                    // validazione di base
                     if (loadedDtm == null) {
                         throw new IOException("Document-Term Matrix caricata è null");
                     }
