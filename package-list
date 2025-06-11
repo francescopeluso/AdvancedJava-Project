@@ -1,4 +1,6 @@
 wordageddon
 wordageddon.controller
+wordageddon.dao
+wordageddon.dao.implementation
 wordageddon.model
 wordageddon.service
