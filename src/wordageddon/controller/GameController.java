@@ -148,6 +148,12 @@ public class GameController {
     private GameSession currentGameSession;
     /** Timeline for the document reading timer */
     private Timeline readingTimer;
+    
+    // Tracking for question uniqueness
+    /** Set to track used frequency question combinations (document + word) */
+    private Set<String> usedFrequencyQuestions;
+    /** Set to track used most-frequent-word question documents */
+    private Set<String> usedMostFrequentQuestions;
 
     /**
      * Initializes the game controller by setting up services for asynchronous operations.
@@ -160,6 +166,10 @@ public class GameController {
         
         // inizializza i servizi
         gameIntegrationService = new GameIntegrationService();
+        
+        // Inizializza i Set per tracciare le domande utilizzate
+        usedFrequencyQuestions = new HashSet<>();
+        usedMostFrequentQuestions = new HashSet<>();
         
         // Inizializza il gioco in modo asincrono
         initializeGameAsync();
@@ -204,7 +214,7 @@ public class GameController {
      */
     private void initializeDocumentLoadingAsync() {
         // Crea e configura il service per il caricamento dei documenti
-        File documentsDir = new File("documents/");
+        File documentsDir = new File("data/documents/"); // Use persistent directory
         documentLoadingService = new DocumentLoadingService(textAnalysisService, documentsDir, 3);
         
         // Gestisce il completamento del caricamento
@@ -482,6 +492,14 @@ public class GameController {
         
         // reset game session
         currentGameSession = null;
+        
+        // reset question tracking sets
+        if (usedFrequencyQuestions != null) {
+            usedFrequencyQuestions.clear();
+        }
+        if (usedMostFrequentQuestions != null) {
+            usedMostFrequentQuestions.clear();
+        }
     }
     
     /**
@@ -760,9 +778,31 @@ public class GameController {
     }
     
     /**
+     * Converts a document filename to a generic document name for display.
+     * Maps documents to "Documento 1", "Documento 2", etc. based on their order.
+     * 
+     * @param filename the actual filename of the document
+     * @return a generic document name for display
+     */
+    private String getGenericDocumentName(String filename) {
+        if (currentGameDocuments == null || filename == null) {
+            return "Documento 1";
+        }
+        
+        int index = currentGameDocuments.indexOf(filename);
+        if (index >= 0) {
+            return "Documento " + (index + 1);
+        }
+        
+        // Fallback if document not found in current game documents
+        return "Documento 1";
+    }
+
+    /**
      * Generates a frequency-based question asking about word occurrence count.
      * Selects a random word from a random document and creates multiple-choice options
      * with the correct frequency and plausible alternatives.
+     * Ensures no duplicate questions are generated during the same game session.
      */
     // Metodo per generare una domanda sulla frequenza
     private void generateFrequencyQuestion(List<Question> questions) {
@@ -770,48 +810,69 @@ public class GameController {
             return;
         }
         
-        String doc = currentGameDocuments.get((int)(Math.random() * currentGameDocuments.size()));
-        Map<String, Integer> termFreq = dtm.getTermsForDocument(doc);
+        int maxAttempts = 50; // Prevent infinite loops
+        int attempts = 0;
         
-        if (!termFreq.isEmpty()) {
-            List<String> words = new ArrayList<>(termFreq.keySet());
-            String word = words.get((int)(Math.random() * words.size()));
-            int correctFreq = termFreq.get(word);
+        while (attempts < maxAttempts) {
+            String doc = currentGameDocuments.get((int)(Math.random() * currentGameDocuments.size()));
+            Map<String, Integer> termFreq = dtm.getTermsForDocument(doc);
             
-            String questionText = String.format("Quante volte compare la parola \"%s\" nel documento \"%s\"?", word, doc);
-            
-            // Genera opzioni multiple
-            Set<Integer> options = new HashSet<>();
-            options.add(correctFreq);
-            
-            while (options.size() < 4) {
-                int variation = (int)(Math.random() * 5) + 1;
-                int option = Math.random() < 0.5 ? correctFreq + variation : Math.max(0, correctFreq - variation);
-                options.add(option);
-            }
-            
-            List<String> optionStrings = new ArrayList<>();
-            List<Integer> optionsList = new ArrayList<>(options);
-            Collections.shuffle(optionsList);
-            
-            int correctIndex = -1;
-            for (int i = 0; i < optionsList.size(); i++) {
-                optionStrings.add(String.valueOf(optionsList.get(i)));
-                if (optionsList.get(i) == correctFreq) {
-                    correctIndex = i;
+            if (!termFreq.isEmpty()) {
+                List<String> words = new ArrayList<>(termFreq.keySet());
+                String word = words.get((int)(Math.random() * words.size()));
+                
+                // Create unique identifier for this question combination
+                String questionKey = doc + "|" + word;
+                
+                // Check if this combination has already been used
+                if (!usedFrequencyQuestions.contains(questionKey)) {
+                    usedFrequencyQuestions.add(questionKey);
+                    
+                    int correctFreq = termFreq.get(word);
+                    String genericDocName = getGenericDocumentName(doc);
+                    
+                    String questionText = String.format("Quante volte compare la parola \"%s\" nel %s?", word, genericDocName);
+                    
+                    // Genera opzioni multiple
+                    Set<Integer> options = new HashSet<>();
+                    options.add(correctFreq);
+                    
+                    while (options.size() < 4) {
+                        int variation = (int)(Math.random() * 5) + 1;
+                        int option = Math.random() < 0.5 ? correctFreq + variation : Math.max(0, correctFreq - variation);
+                        options.add(option);
+                    }
+                    
+                    List<String> optionStrings = new ArrayList<>();
+                    List<Integer> optionsList = new ArrayList<>(options);
+                    Collections.shuffle(optionsList);
+                    
+                    int correctIndex = -1;
+                    for (int i = 0; i < optionsList.size(); i++) {
+                        optionStrings.add(String.valueOf(optionsList.get(i)));
+                        if (optionsList.get(i) == correctFreq) {
+                            correctIndex = i;
+                        }
+                    }
+                    
+                    // Crea oggetto Question e aggiungilo alla lista
+                    Question question = new Question(questions.size() + 1, questionText, optionStrings, correctIndex);
+                    questions.add(question);
+                    return; // Successfully generated unique question
                 }
             }
-            
-            // Crea oggetto Question e aggiungilo alla lista
-            Question question = new Question(questions.size() + 1, questionText, optionStrings, correctIndex);
-            questions.add(question);
+            attempts++;
         }
+        
+        // If we can't generate a unique question, generate a fallback question
+        System.out.println("Could not generate unique frequency question after " + maxAttempts + " attempts");
     }
     
     /**
      * Generates a most-frequent-word question asking which word appears most often.
      * Selects a random document and creates multiple-choice options with the correct
      * most frequent word and other words from the same document as alternatives.
+     * Ensures no duplicate questions are generated during the same game session.
      */
     // Metodo per generare una domanda sulla parola più frequente
     private void generateMostFrequentWordQuestion(List<Question> questions) {
@@ -819,37 +880,54 @@ public class GameController {
             return;
         }
         
-        String doc = currentGameDocuments.get((int)(Math.random() * currentGameDocuments.size()));
-        Map<String, Integer> termFreq = dtm.getTermsForDocument(doc);
+        int maxAttempts = 50; // Prevent infinite loops
+        int attempts = 0;
         
-        if (!termFreq.isEmpty()) {
-            String correctWord = termFreq.entrySet().stream()
-                    .max(Map.Entry.comparingByValue())
-                    .map(Map.Entry::getKey).orElse("");
+        while (attempts < maxAttempts) {
+            String doc = currentGameDocuments.get((int)(Math.random() * currentGameDocuments.size()));
             
-            String questionText = String.format("Quale parola compare più spesso nel documento \"%s\"?", doc);
-            
-            // Genera opzioni multiple con parole casuali dal documento
-            Set<String> options = new HashSet<>();
-            options.add(correctWord);
-            
-            List<String> allWords = new ArrayList<>(termFreq.keySet());
-            Collections.shuffle(allWords);
-            
-            for (String word : allWords) {
-                if (options.size() >= 4) break;
-                options.add(word);
+            // Check if this document has already been used for most frequent word question
+            if (!usedMostFrequentQuestions.contains(doc)) {
+                usedMostFrequentQuestions.add(doc);
+                
+                Map<String, Integer> termFreq = dtm.getTermsForDocument(doc);
+                
+                if (!termFreq.isEmpty()) {
+                    String correctWord = termFreq.entrySet().stream()
+                            .max(Map.Entry.comparingByValue())
+                            .map(Map.Entry::getKey).orElse("");
+                    
+                    String genericDocName = getGenericDocumentName(doc);
+                    String questionText = String.format("Quale parola compare più spesso nel %s?", genericDocName);
+                    
+                    // Genera opzioni multiple con parole casuali dal documento
+                    Set<String> options = new HashSet<>();
+                    options.add(correctWord);
+                    
+                    List<String> allWords = new ArrayList<>(termFreq.keySet());
+                    Collections.shuffle(allWords);
+                    
+                    for (String word : allWords) {
+                        if (options.size() >= 4) break;
+                        options.add(word);
+                    }
+                    
+                    List<String> optionsList = new ArrayList<>(options);
+                    Collections.shuffle(optionsList);
+                    
+                    int correctIndex = optionsList.indexOf(correctWord);
+                    
+                    // Crea oggetto Question e aggiungilo alla lista
+                    Question question = new Question(questions.size() + 1, questionText, optionsList, correctIndex);
+                    questions.add(question);
+                    return; // Successfully generated unique question
+                }
             }
-            
-            List<String> optionsList = new ArrayList<>(options);
-            Collections.shuffle(optionsList);
-            
-            int correctIndex = optionsList.indexOf(correctWord);
-            
-            // Crea oggetto Question e aggiungilo alla lista
-            Question question = new Question(questions.size() + 1, questionText, optionsList, correctIndex);
-            questions.add(question);
+            attempts++;
         }
+        
+        // If we can't generate a unique question, generate a fallback question
+        System.out.println("Could not generate unique most frequent word question after " + maxAttempts + " attempts");
     }
     
     /**

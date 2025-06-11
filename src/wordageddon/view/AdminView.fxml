@@ -5,9 +5,9 @@
 <?import javafx.scene.image.*?>
 <?import javafx.geometry.Insets?>
 
-<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="wordageddon.controller.AdminController" spacing="20" styleClass="app-container" stylesheets="@../../resources/styles/application.css">
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="wordageddon.controller.AdminController" styleClass="app-container" stylesheets="@../../resources/styles/application.css">
    
-   <!-- Header with Logo -->
+   <!-- Header with Logo (Fixed at top) -->
    <HBox alignment="CENTER_LEFT" spacing="15.0" styleClass="app-header">
       <children>
          <ImageView fitHeight="50.0" fitWidth="50.0" preserveRatio="true" styleClass="logo">
@@ -17,7 +17,18 @@
          </ImageView>
          <Label fx:id="adminTitleLabel" styleClass="page-title" text="Pannello Amministratore" />
       </children>
+      <VBox.margin>
+         <Insets bottom="10.0" />
+      </VBox.margin>
    </HBox>
+   
+   <!-- Scrollable Content Area -->
+   <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="admin-scroll-pane">
+      <content>
+         <VBox spacing="25" styleClass="admin-content">
+            <padding>
+               <Insets top="10.0" right="20.0" bottom="20.0" left="20.0" />
+            </padding>
    
    <!-- User Management Section -->
    <VBox spacing="15" styleClass="table-container">
@@ -45,7 +56,7 @@
    
    <!-- Game Statistics Section -->
    <VBox spacing="15" styleClass="stats-container">
-      <Label styleClass="section-title" text="Utenti e sessioni" />
+      <Label styleClass="section-title" text="Statistiche Sistema" />
       
       <HBox spacing="30" alignment="CENTER">
          <VBox spacing="5" styleClass="stat-card">
@@ -65,8 +76,61 @@
       </HBox>
    </VBox>
    
-   <!-- Navigation Buttons -->
+   <!-- Document Management Section -->
+   <VBox spacing="15" styleClass="table-container">
+      <Label styleClass="section-title" text="Gestione Documenti e Stopwords" />
+      
+      <!-- Document Statistics -->
+      <HBox spacing="30" alignment="CENTER">
+         <VBox spacing="5" styleClass="stat-card">
+            <Label styleClass="stat-label" text="Documenti:" />
+            <Label fx:id="documentsCountLabel" styleClass="stat-value" text="0" />
+         </VBox>
+         
+         <VBox spacing="5" styleClass="stat-card">
+            <Label styleClass="stat-label" text="Stopwords:" />
+            <Label fx:id="stopwordsCountLabel" styleClass="stat-value" text="0" />
+         </VBox>
+         
+         <VBox spacing="5" styleClass="stat-card">
+            <Label styleClass="stat-label" text="Vocabolario:" />
+            <Label fx:id="vocabularyCountLabel" styleClass="stat-value" text="0" />
+         </VBox>
+      </HBox>
+      
+      <!-- Document Management Buttons -->
+      <HBox spacing="15" alignment="CENTER">
+         <Button fx:id="loadDocumentButton" onAction="#handleLoadDocument" styleClass="btn-success" text="Carica Documento" />
+         <Button fx:id="regenerateDtmButton" onAction="#handleRegenerateDtm" styleClass="btn-secondary" text="Rigenera DTM" />
+      </HBox>
+      
+      <!-- Stopwords Management -->
+      <VBox spacing="10">
+         <Label styleClass="field-label" text="Stopwords (separate con virgole):" />
+         <TextArea fx:id="stopwordsTextArea" prefHeight="80" wrapText="true" styleClass="text-field" 
+                   promptText="Inserisci le stopwords separate da virgole (es: il, la, di, da, in, con...)"/>
+         <HBox spacing="10" alignment="CENTER_LEFT">
+            <Button fx:id="updateStopwordsButton" onAction="#handleUpdateStopwords" styleClass="btn-primary" text="Aggiorna Stopwords" />
+            <Label fx:id="stopwordsStatusLabel" styleClass="info-text" text="Inserisci le parole da escludere dall'analisi" />
+         </HBox>
+      </VBox>
+      
+      <!-- Documents List -->
+      <VBox spacing="10">
+         <Label styleClass="field-label" text="Documenti Caricati:" />
+         <ListView fx:id="documentsListView" prefHeight="150" styleClass="app-list" />
+         <HBox spacing="10" alignment="CENTER_LEFT">
+            <Button fx:id="removeDocumentButton" onAction="#handleRemoveDocument" styleClass="btn-danger" text="Rimuovi Selezionato" />
+            <Label fx:id="documentStatusLabel" styleClass="info-text" text="Seleziona un documento per rimuoverlo" />
+         </HBox>
+      </VBox>
+   </VBox>
+   
+   <!-- Navigation Buttons (Fixed at bottom) -->
    <HBox spacing="15" styleClass="footer-actions" alignment="CENTER">
       <Button fx:id="backButton" onAction="#handleBack" styleClass="btn-primary" text="Torna alla Dashboard" />
    </HBox>
+         </VBox>
+      </content>
+   </ScrollPane>
 </VBox>

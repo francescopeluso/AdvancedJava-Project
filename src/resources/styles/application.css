@@ -620,3 +620,55 @@
     -fx-border-width: 1px;
     -fx-border-radius: 8px;
 }
+
+/* ===== ADMIN PANEL STYLES ===== */
+.admin-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-fit-to-width: true;
+    -fx-hbar-policy: never;
+    -fx-vbar-policy: as-needed;
+}
+
+.admin-scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.admin-scroll-pane .content {
+    -fx-background-color: transparent;
+}
+
+.admin-content {
+    -fx-background-color: transparent;
+    -fx-spacing: 25px;
+}
+
+/* Improve scroll bar appearance */
+.admin-scroll-pane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-padding: 0;
+    -fx-pref-width: 12px;
+}
+
+.admin-scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: rgba(0,0,0,0.05);
+    -fx-background-radius: 6px;
+    -fx-border-color: transparent;
+}
+
+.admin-scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-background-radius: 6px;
+    -fx-border-color: transparent;
+}
+
+.admin-scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: rgba(0,0,0,0.3);
+}
+
+.admin-scroll-pane .scroll-bar:vertical .thumb:pressed {
+    -fx-background-color: rgba(0,0,0,0.4);
+}

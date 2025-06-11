@@ -110,6 +110,15 @@ public class DocumentTermMatrix implements Serializable {
     }
 
     /**
+     * Gets the size of the vocabulary (total number of unique terms).
+     * 
+     * @return the number of unique terms across all documents
+     */
+    public int getVocabularySize() {
+        return getAllTerms().size();
+    }
+
+    /**
      * Saves the Document-Term Matrix to a file using Java serialization.
      * 
      * @param file the File object representing where the matrix should be saved

@@ -99,6 +99,33 @@ public class TextAnalysisService {
             .forEach(word -> dtm.addTerm(file.getName(), word));
     }
 
+    /**
+     * Creates a Document Term Matrix from a list of document contents and stopwords.
+     * 
+     * @param documents list of document contents as strings
+     * @param stopwords set of stopwords to filter out
+     * @return a new DocumentTermMatrix populated with the processed documents
+     */
+    public DocumentTermMatrix createDocumentTermMatrix(java.util.List<String> documents, Set<String> stopwords) {
+        // Set the stopwords for this service
+        this.stopwords = stopwords != null ? new HashSet<>(stopwords) : new HashSet<>();
+        
+        DocumentTermMatrix dtm = new DocumentTermMatrix();
+        
+        // Process each document
+        for (int i = 0; i < documents.size(); i++) {
+            String content = documents.get(i);
+            String documentId = "document_" + (i + 1); // Generate document ID
+            
+            // Process the content and add to DTM
+            Arrays.stream(content.toLowerCase().replaceAll("[^a-zàèéìòù]", " ").split("\\s+"))
+                .filter(word -> !word.isEmpty() && !this.stopwords.contains(word))
+                .forEach(word -> dtm.addTerm(documentId, word));
+        }
+        
+        return dtm;
+    }
+
 
     /**
      * Main method for testing TextAnalysisService functionality.

@@ -13,10 +13,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.application.Platform;
+import javafx.stage.FileChooser;
 
 import wordageddon.model.User;
 import wordageddon.model.GameSession;
 import wordageddon.service.UserSession;
+import wordageddon.service.AdminDocumentService;
 import wordageddon.dao.UserDAO;
 import wordageddon.dao.GameSessionDAO;
 import wordageddon.dao.implementation.UserDAOSQLite;
@@ -25,6 +27,7 @@ import wordageddon.dao.implementation.GameSessionDAOSQLite;
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller for the admin panel interface.
@@ -54,10 +57,24 @@ public class AdminController implements Initializable {
     @FXML private Label totalUsersLabel;
     @FXML private Label totalGamesLabel;
     @FXML private Label totalAdminsLabel;
+    
+    // Document Management Elements
+    @FXML private Label documentsCountLabel;
+    @FXML private Label stopwordsCountLabel;
+    @FXML private Label vocabularyCountLabel;
+    @FXML private Button loadDocumentButton;
+    @FXML private Button regenerateDtmButton;
+    @FXML private TextArea stopwordsTextArea;
+    @FXML private Button updateStopwordsButton;
+    @FXML private Label stopwordsStatusLabel;
+    @FXML private ListView<String> documentsListView;
+    @FXML private Button removeDocumentButton;
+    @FXML private Label documentStatusLabel;
 
     // Services and DAOs
     private UserDAO userDAO;
     private GameSessionDAO gameSessionDAO;
+    private AdminDocumentService adminDocumentService;
     
     // Data
     private ObservableList<User> usersList;
@@ -70,6 +87,7 @@ public class AdminController implements Initializable {
         // Initialize DAOs and services
         userDAO = new UserDAOSQLite();
         gameSessionDAO = new GameSessionDAOSQLite();
+        adminDocumentService = new AdminDocumentService();
         
         // Initialize user list
         usersList = FXCollections.observableArrayList();
@@ -79,6 +97,9 @@ public class AdminController implements Initializable {
         
         // Load initial data
         loadData();
+        
+        // Setup document list selection listener
+        setupDocumentListListener();
     }
     
     /**
@@ -281,5 +302,147 @@ public class AdminController implements Initializable {
             alert.setContentText(message);
             alert.showAndWait();
         });
+    }
+    
+    /**
+     * Sets up the document list selection listener.
+     */
+    private void setupDocumentListListener() {
+        documentsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                documentStatusLabel.setText("Documento selezionato: " + (newVal.length() > 50 ? newVal.substring(0, 50) + "..." : newVal));
+            } else {
+                documentStatusLabel.setText("Seleziona un documento per rimuoverlo");
+            }
+        });
+        
+        // Load documents and statistics
+        loadDocumentData();
+    }
+    
+    /**
+     * Loads document data and statistics.
+     */
+    private void loadDocumentData() {
+        try {
+            // Update document statistics
+            Map<String, Integer> stats = adminDocumentService.getStatistics();
+            documentsCountLabel.setText(String.valueOf(stats.get("documents")));
+            stopwordsCountLabel.setText(String.valueOf(stats.get("stopwords")));
+            vocabularyCountLabel.setText(String.valueOf(stats.get("vocabulary")));
+            
+            // Update documents list
+            List<String> documents = adminDocumentService.getDocuments();
+            ObservableList<String> documentItems = FXCollections.observableArrayList();
+            for (int i = 0; i < documents.size(); i++) {
+                String doc = documents.get(i);
+                String preview = "Documento " + (i + 1) + ": " + 
+                               (doc.length() > 100 ? doc.substring(0, 100) + "..." : doc);
+                documentItems.add(preview);
+            }
+            documentsListView.setItems(documentItems);
+            
+            // Load stopwords into TextArea
+            String stopwordsText = adminDocumentService.getStopwordsAsText();
+            stopwordsTextArea.setText(stopwordsText);
+            
+        } catch (Exception e) {
+            System.err.println("Errore nel caricamento dei dati documenti: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Handles loading a new document from file.
+     */
+    @FXML
+    private void handleLoadDocument(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Seleziona Documento da Caricare");
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("File di Testo", "*.txt"),
+            new FileChooser.ExtensionFilter("Tutti i File", "*.*")
+        );
+        
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        java.io.File selectedFile = fileChooser.showOpenDialog(stage);
+        
+        if (selectedFile != null) {
+            try {
+                boolean success = adminDocumentService.loadDocumentFromFile(selectedFile.getAbsolutePath());
+                if (success) {
+                    loadDocumentData();
+                    documentStatusLabel.setText("Documento caricato: " + selectedFile.getName());
+                    showAlert("Documento Caricato", "Il documento '" + selectedFile.getName() + "' è stato caricato con successo e salvato.");
+                } else {
+                    documentStatusLabel.setText("Errore nel caricamento del documento.");
+                    showAlert("Errore", "Impossibile caricare il documento. Verifica che il file non sia vuoto.");
+                }
+            } catch (Exception e) {
+                documentStatusLabel.setText("Errore: " + e.getMessage());
+                showAlert("Errore", "Errore nel caricamento del documento: " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * Handles updating stopwords from the TextArea.
+     */
+    @FXML
+    private void handleUpdateStopwords(ActionEvent event) {
+        String stopwordsText = stopwordsTextArea.getText();
+        
+        try {
+            boolean success = adminDocumentService.updateStopwordsFromText(stopwordsText);
+            if (success) {
+                loadDocumentData();
+                stopwordsStatusLabel.setText("Stopwords aggiornate con successo!");
+                showAlert("Stopwords Aggiornate", "Le stopwords sono state aggiornate con successo e la DTM è stata rigenerata.");
+            } else {
+                stopwordsStatusLabel.setText("Errore nell'aggiornamento delle stopwords.");
+                showAlert("Errore", "Impossibile aggiornare le stopwords.");
+            }
+        } catch (Exception e) {
+            stopwordsStatusLabel.setText("Errore: " + e.getMessage());
+            showAlert("Errore", "Errore nell'aggiornamento delle stopwords: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Handles regenerating the Document Term Matrix.
+     */
+    @FXML
+    private void handleRegenerateDtm(ActionEvent event) {
+        try {
+            // Force regeneration by calling the service method
+            loadDocumentData();
+            showAlert("DTM Rigenerata", "La Document Term Matrix è stata rigenerata con successo.");
+        } catch (Exception e) {
+            showAlert("Errore", "Errore nella rigenerazione della DTM: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Handles removing a selected document.
+     */
+    @FXML
+    private void handleRemoveDocument(ActionEvent event) {
+        int selectedIndex = documentsListView.getSelectionModel().getSelectedIndex();
+        
+        if (selectedIndex < 0) {
+            showAlert("Nessun Documento Selezionato", "Seleziona un documento dalla lista per rimuoverlo.");
+            return;
+        }
+        
+        try {
+            boolean success = adminDocumentService.removeDocument(selectedIndex);
+            if (success) {
+                loadDocumentData();
+                showAlert("Documento Rimosso", "Il documento è stato rimosso con successo e la DTM è stata rigenerata.");
+            } else {
+                showAlert("Errore", "Impossibile rimuovere il documento.");
+            }
+        } catch (Exception e) {
+            showAlert("Errore", "Errore nella rimozione del documento: " + e.getMessage());
+        }
     }
 }
