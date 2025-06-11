@@ -414,7 +414,8 @@ public class AdminController implements Initializable {
     private void handleRegenerateDtm(ActionEvent event) {
         try {
             // Force regeneration by calling the service method
-            loadDocumentData();
+            adminDocumentService.regenerateAndSaveDtm(); // Updated call
+            loadDocumentData(); // Then refresh UI
             showAlert("DTM Rigenerata", "La Document Term Matrix è stata rigenerata con successo.");
         } catch (Exception e) {
             showAlert("Errore", "Errore nella rigenerazione della DTM: " + e.getMessage());

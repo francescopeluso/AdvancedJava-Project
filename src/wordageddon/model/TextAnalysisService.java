@@ -3,6 +3,9 @@ package wordageddon.model;
 import java.util.Set;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import java.io.File;
 import java.io.FileReader;
@@ -106,23 +109,63 @@ public class TextAnalysisService {
      * @param stopwords set of stopwords to filter out
      * @return a new DocumentTermMatrix populated with the processed documents
      */
-    public DocumentTermMatrix createDocumentTermMatrix(java.util.List<String> documents, Set<String> stopwords) {
-        // Set the stopwords for this service
-        this.stopwords = stopwords != null ? new HashSet<>(stopwords) : new HashSet<>();
-        
+    public DocumentTermMatrix createDocumentTermMatrix(java.util.List<String> documents, Set<String> currentStopwords) {
+        final Set<String> finalStopwords = currentStopwords != null ? new HashSet<>(currentStopwords) : new HashSet<>();
+        System.out.println("[TextAnalysisService] Creating DTM. Stopwords received: " +
+                           (currentStopwords == null ? "null" : currentStopwords.size()) +
+                           ". Effective stopwords for this DTM build: " + finalStopwords.size() + 
+                           " -> [" + finalStopwords.stream().limit(20).collect(Collectors.joining(", ")) + (finalStopwords.size() > 20 ? "..." : "") + "]");
+
         DocumentTermMatrix dtm = new DocumentTermMatrix();
-        
-        // Process each document
+        boolean firstDocLogged = false;
+
+        if (documents == null || documents.isEmpty()) {
+            System.out.println("[TextAnalysisService] No documents provided to create DTM. Returning empty DTM.");
+            return dtm;
+        }
+
         for (int i = 0; i < documents.size(); i++) {
             String content = documents.get(i);
-            String documentId = "document_" + (i + 1); // Generate document ID
-            
-            // Process the content and add to DTM
-            Arrays.stream(content.toLowerCase().replaceAll("[^a-zàèéìòù]", " ").split("\\s+"))
-                .filter(word -> !word.isEmpty() && !this.stopwords.contains(word))
-                .forEach(word -> dtm.addTerm(documentId, word));
+            if (content == null || content.trim().isEmpty()) {
+                System.out.println("[TextAnalysisService] Document " + i + " is null or empty. Skipping.");
+                continue;
+            }
+            String documentId = "document_" + (i + 1);
+
+            List<String> allWordsInDoc = new ArrayList<>();
+            List<String> addedTermsForDoc = new ArrayList<>();
+            List<String> filteredOutWords = new ArrayList<>();
+
+            String[] processedWords = content.toLowerCase().replaceAll("[^a-zàèéìòù]", " ").split("\\\\s+");
+
+            for (String word : processedWords) {
+                if (!word.isEmpty()) {
+                    allWordsInDoc.add(word);
+                    if (finalStopwords.contains(word)) {
+                        filteredOutWords.add(word);
+                    } else {
+                        addedTermsForDoc.add(word);
+                        dtm.addTerm(documentId, word);
+                    }
+                }
+            }
+
+            if (!firstDocLogged) {
+                System.out.println("[TextAnalysisService] Processing first document (ID: " + documentId + ")");
+                System.out.println("    Original words (sample): [" + allWordsInDoc.stream().limit(15).collect(Collectors.joining(", ")) + (allWordsInDoc.size() > 15 ? "..." : "") + "]");
+                System.out.println("    Stopwords found in doc (sample): [" + filteredOutWords.stream().limit(15).collect(Collectors.joining(", ")) + (filteredOutWords.size() > 15 ? "..." : "") + "]");
+                System.out.println("    Terms added to DTM for this doc (sample): [" + addedTermsForDoc.stream().limit(15).collect(Collectors.joining(", ")) + (addedTermsForDoc.size() > 15 ? "..." : "") + "]");
+                // Example check for a common stopword if present in lists
+                String testStopword = "il"; 
+                boolean stopwordInSet = finalStopwords.contains(testStopword);
+                boolean stopwordInDocWords = allWordsInDoc.contains(testStopword);
+                if (stopwordInDocWords) {
+                     System.out.println("    DEBUG: Test stopword '" + testStopword + "': In finalStopwordsSet? " + stopwordInSet + ". In document words? " + stopwordInDocWords + ". Should be filtered if both true.");
+                }
+                firstDocLogged = true;
+            }
         }
-        
+        System.out.println("[TextAnalysisService] DTM creation complete. Vocabulary size: " + dtm.getVocabularySize());
         return dtm;
     }
 

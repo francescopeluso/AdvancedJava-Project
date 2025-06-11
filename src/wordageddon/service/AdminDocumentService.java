@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Service for managing documents and stopwords in the admin panel.
@@ -241,6 +242,7 @@ public class AdminDocumentService {
      */
     private void regenerateDocumentTermMatrix() {
         if (gameData == null || gameData.getDocuments() == null || gameData.getDocuments().isEmpty()) {
+            System.out.println("[AdminDocumentService] DTM regeneration skipped: gameData or documents are null/empty.");
             return;
         }
         
@@ -248,12 +250,30 @@ public class AdminDocumentService {
         if (stopwords == null) {
             stopwords = new HashSet<>();
         }
-        
+        // Ensure textAnalysisService is initialized
+        if (this.textAnalysisService == null) {
+            this.textAnalysisService = new TextAnalysisService();
+        }
+        System.out.println("[AdminDocumentService] Regenerating DTM with " + stopwords.size() + " stopwords: " + 
+                           stopwords.stream().limit(20).collect(Collectors.joining(", ")) + (stopwords.size() > 20 ? "..." : ""));
+
         DocumentTermMatrix dtm = textAnalysisService.createDocumentTermMatrix(
             gameData.getDocuments(), stopwords);
         
         gameData.setDocumentTermMatrix(dtm);
         gameData.updateTimestamp();
+        System.out.println("[AdminDocumentService] DTM regenerated. Vocab size: " + (dtm != null ? dtm.getVocabularySize() : "null"));
+    }
+
+    /**
+     * Forces regeneration of the Document Term Matrix and saves the game data.
+     * To be called from the admin panel.
+     */
+    public void regenerateAndSaveDtm() {
+        System.out.println("[AdminDocumentService] Forcing DTM regeneration and save via admin panel request.");
+        regenerateDocumentTermMatrix(); // This line was correct
+        saveGameData();
+        System.out.println("[AdminDocumentService] DTM regeneration and save complete.");
     }
     
     /**
