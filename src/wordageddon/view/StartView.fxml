@@ -1,76 +1,104 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.text.*?>
-<?import javafx.scene.image.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.geometry.Insets?>
 
-<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="wordageddon.controller.StartViewController" stylesheets="@../../resources/styles/application.css">
+<StackPane stylesheets="@../../resources/styles/application.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="wordageddon.controller.StartViewController">
     <children>
         <!-- LOGIN VIEW -->
-        <VBox fx:id="loginPane" alignment="CENTER" spacing="20" visible="true" managed="true" styleClass="card-container">
-            <VBox alignment="CENTER" spacing="15" maxWidth="350">
+        <VBox fx:id="loginPane" alignment="CENTER" managed="true" spacing="20" styleClass="card-container">
+            <VBox alignment="CENTER" maxWidth="350" spacing="15">
                 <!-- Logo -->
-                <ImageView fitHeight="80" fitWidth="80" preserveRatio="true" styleClass="logo">
+                <ImageView fitHeight="150.0" fitWidth="150.0" preserveRatio="true" styleClass="logo">
                     <image>
-                        <Image url="@../../resources/logo.png"/>
+                        <Image url="@../../resources/logo.png" />
                     </image>
                 </ImageView>
+                <Label styleClass="section-title" text="Accedi al tuo account" />
                 
-                <Label text="Wordageddon" styleClass="main-title"/>
-                <Label text="Accedi al tuo account" styleClass="section-title"/>
-                
-                <VBox spacing="10" alignment="CENTER">
-                    <Label text="Email:" styleClass="field-label"/>
-                    <TextField fx:id="loginEmailField" promptText="Inserisci la tua email" styleClass="text-field"/>
+                <VBox alignment="CENTER" spacing="10">
+                    <Label styleClass="field-label" text="Email:" />
+                    <TextField fx:id="loginEmailField" promptText="Inserisci la tua email" styleClass="text-field" />
                     
-                    <Label text="Password:" styleClass="field-label"/>
-                    <PasswordField fx:id="loginPasswordField" promptText="Inserisci la password" styleClass="text-field"/>
+                    <Label styleClass="field-label" text="Password:" />
+                    <PasswordField fx:id="loginPasswordField" promptText="Inserisci la password" styleClass="text-field" />
                 </VBox>
                 
-                <Button text="Accedi" fx:id="loginButton" onAction="#handleLoginAction" styleClass="primary-button"/>
-                <Hyperlink text="Non hai un account? Registrati" onAction="#switchToRegister" styleClass="info-label"/>
-                <Label fx:id="loginErrorLabel" textFill="#e74c3c" visible="false" styleClass="info-label"/>
+                <Button fx:id="loginButton" onAction="#handleLoginAction" styleClass="primary-button" text="Accedi" />
+                <Hyperlink onAction="#switchToRegister" styleClass="info-label" text="Non hai un account? Registrati" />
+                <Label fx:id="loginErrorLabel" styleClass="info-label" textFill="#e74c3c" visible="false" />
             </VBox>
         </VBox>
 
         <!-- REGISTRATION VIEW -->
-        <VBox fx:id="registerPane" alignment="CENTER" spacing="20" visible="false" managed="false" styleClass="card-container">
-            <VBox alignment="CENTER" spacing="15" maxWidth="350">
+        <VBox fx:id="registerPane" alignment="CENTER" managed="false" spacing="20" styleClass="card-container" visible="false">
+            <VBox alignment="CENTER" maxWidth="500" spacing="15">
                 <!-- Logo -->
-                <ImageView fitHeight="80" fitWidth="80" preserveRatio="true" styleClass="logo">
+                <ImageView fitHeight="150.0" fitWidth="150.0" preserveRatio="true" styleClass="logo">
                     <image>
-                        <Image url="@../../resources/logo.png"/>
+                        <Image url="@../../resources/logo.png" />
                     </image>
                 </ImageView>
+                <Label styleClass="section-title" text="Crea un nuovo account" />
                 
-                <Label text="Wordageddon" styleClass="main-title"/>
-                <Label text="Crea un nuovo account" styleClass="section-title"/>
+                <!-- Two-column grid for form fields -->
+                <GridPane hgap="15" vgap="10" alignment="CENTER">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50.0" />
+                        <ColumnConstraints percentWidth="50.0" />
+                    </columnConstraints>
+                    
+                    <!-- First row: Nome and Cognome -->
+                    <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <Label styleClass="field-label" text="Nome:" />
+                        <TextField fx:id="regFirstNameField" promptText="Inserisci il tuo nome" styleClass="text-field" />
+                    </VBox>
+                    
+                    <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label styleClass="field-label" text="Cognome:" />
+                        <TextField fx:id="regLastNameField" promptText="Inserisci il tuo cognome" styleClass="text-field" />
+                    </VBox>
+                    
+                    <!-- Second row: Username and Email -->
+                    <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                        <Label styleClass="field-label" text="Username:" />
+                        <TextField fx:id="regUsernameField" promptText="Scegli un username" styleClass="text-field" />
+                    </VBox>
+                    
+                    <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <Label styleClass="field-label" text="Email:" />
+                        <TextField fx:id="regEmailField" promptText="Inserisci la tua email" styleClass="text-field" />
+                    </VBox>
+                    
+                    <!-- Third row: Password and Confirm Password -->
+                    <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                        <Label styleClass="field-label" text="Password:" />
+                        <PasswordField fx:id="regPasswordField" promptText="Scegli una password" styleClass="text-field" />
+                    </VBox>
+                    
+                    <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                        <Label styleClass="field-label" text="Conferma Password:" />
+                        <PasswordField fx:id="regConfirmPasswordField" promptText="Conferma la password" styleClass="text-field" />
+                    </VBox>
+                    
+                    <padding>
+                        <Insets top="10" bottom="10" />
+                    </padding>
+                </GridPane>
                 
-                <VBox spacing="10" alignment="CENTER">
-                    <Label text="Nome:" styleClass="field-label"/>
-                    <TextField fx:id="regFirstNameField" promptText="Inserisci il tuo nome" styleClass="text-field"/>
-                    
-                    <Label text="Cognome:" styleClass="field-label"/>
-                    <TextField fx:id="regLastNameField" promptText="Inserisci il tuo cognome" styleClass="text-field"/>
-                    
-                    <Label text="Username:" styleClass="field-label"/>
-                    <TextField fx:id="regUsernameField" promptText="Scegli un username" styleClass="text-field"/>
-                    
-                    <Label text="Email:" styleClass="field-label"/>
-                    <TextField fx:id="regEmailField" promptText="Inserisci la tua email" styleClass="text-field"/>
-                    
-                    <Label text="Password:" styleClass="field-label"/>
-                    <PasswordField fx:id="regPasswordField" promptText="Scegli una password" styleClass="text-field"/>
-                    
-                    <Label text="Conferma Password:" styleClass="field-label"/>
-                    <PasswordField fx:id="regConfirmPasswordField" promptText="Conferma la password" styleClass="text-field"/>
-                </VBox>
-                
-                <Button text="Registrati" fx:id="registerButton" onAction="#handleRegisterAction" styleClass="success-button"/>
-                <Hyperlink text="Hai già un account? Accedi" onAction="#switchToLogin" styleClass="info-label"/>
-                <Label fx:id="registerErrorLabel" textFill="#e74c3c" visible="false" styleClass="info-label"/>
+                <Button fx:id="registerButton" onAction="#handleRegisterAction" styleClass="success-button" text="Registrati" />
+                <Hyperlink onAction="#switchToLogin" styleClass="info-label" text="Hai già un account? Accedi" />
+                <Label fx:id="registerErrorLabel" styleClass="info-label" textFill="#e74c3c" visible="false" />
             </VBox>
         </VBox>
     </children>

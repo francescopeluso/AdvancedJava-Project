@@ -4,6 +4,7 @@ import wordageddon.dao.GameSessionDAO;
 import wordageddon.dao.Database;
 import wordageddon.model.GameSession;
 import wordageddon.model.GameSessionSummary;
+import wordageddon.model.UserLeaderboardEntry;
 import wordageddon.model.Question;
 import java.sql.*;
 import java.util.ArrayList;
@@ -211,5 +212,29 @@ public class GameSessionDAOSQLite implements GameSessionDAO {
             throw new RuntimeException("Error retrieving game session summaries: " + e.getMessage(), e);
         }
         return summaries;
+    }
+
+    @Override
+    public List<UserLeaderboardEntry> getGlobalLeaderboard() {
+        List<UserLeaderboardEntry> leaderboard = new ArrayList<>();
+        String sql = "SELECT u.username, SUM(gs.score) as total_points " +
+                     "FROM users u " +
+                     "INNER JOIN game_sessions gs ON u.id = gs.user_id " +
+                     "GROUP BY u.id, u.username " +
+                     "ORDER BY total_points DESC";
+        
+        try (Connection conn = Database.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            
+            while (rs.next()) {
+                String username = rs.getString("username");
+                int totalPoints = rs.getInt("total_points");
+                leaderboard.add(new UserLeaderboardEntry(username, totalPoints));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error retrieving global leaderboard: " + e.getMessage(), e);
+        }
+        return leaderboard;
     }
 }

@@ -27,10 +27,10 @@
             
             <!-- Menu principale -->
             <VBox alignment="CENTER" spacing="20" styleClass="button-container">
-                <Button maxWidth="350" minWidth="350" onAction="#handleStartGame" prefHeight="50" styleClass="success-button" text="🎮 Gioca" />
-                <Button maxWidth="350" minWidth="350" onAction="#handleLeaderboardAndHistory" prefHeight="50" styleClass="primary-button" text="🏆 Statistiche e classifica" />
-                <Button maxWidth="350" minWidth="350" onAction="#handleSettings" prefHeight="50" styleClass="secondary-button" text="⚙️ Pannello di amministrazione" />
-                <Button maxWidth="350" minWidth="350" onAction="#handleLogout" prefHeight="50" styleClass="danger-button" text="🚪 Logout" />
+                <Button maxWidth="350" minWidth="350" onAction="#handleStartGame" prefHeight="50" styleClass="success-button" text="Gioca" />
+                <Button maxWidth="350" minWidth="350" onAction="#handleLeaderboardAndHistory" prefHeight="50" styleClass="primary-button" text="Statistiche e classifica" />
+                <Button maxWidth="350" minWidth="350" onAction="#handleSettings" prefHeight="50" styleClass="secondary-button" text="Pannello di amministrazione" />
+                <Button maxWidth="350" minWidth="350" onAction="#handleLogout" prefHeight="50" styleClass="danger-button" text="Logout" />
             </VBox>
             
             <!-- Footer informativo -->

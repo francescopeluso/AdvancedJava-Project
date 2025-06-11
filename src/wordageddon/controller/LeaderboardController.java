@@ -17,6 +17,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.ActionEvent;
 
 import wordageddon.model.GameSessionSummary;
+import wordageddon.model.UserLeaderboardEntry;
 import wordageddon.model.User;
 import wordageddon.service.GameIntegrationService;
 import wordageddon.service.UserSession;
@@ -37,10 +38,18 @@ import java.text.SimpleDateFormat;
 public class LeaderboardController implements Initializable {
 
     @FXML private VBox leaderboardPane;
+    @FXML private TabPane tabPane;
     @FXML private Label userWelcomeLabel;
     @FXML private Label userStatsLabel;
     
-    // tabella delle sessioni di gioco
+    // Global leaderboard table
+    @FXML private TableView<UserLeaderboardEntry> globalLeaderboardTable;
+    @FXML private TableColumn<UserLeaderboardEntry, Integer> rankColumn;
+    @FXML private TableColumn<UserLeaderboardEntry, String> usernameColumn;
+    @FXML private TableColumn<UserLeaderboardEntry, Integer> totalPointsColumn;
+    @FXML private Button refreshGlobalButton;
+    
+    // User game sessions table
     @FXML private TableView<GameSessionSummary> gameSessionsTable;
     @FXML private TableColumn<GameSessionSummary, String> difficultyColumn;
     @FXML private TableColumn<GameSessionSummary, Double> scoreColumn;
@@ -48,7 +57,6 @@ public class LeaderboardController implements Initializable {
     @FXML private TableColumn<GameSessionSummary, Integer> correctColumn;
     @FXML private TableColumn<GameSessionSummary, Double> percentageColumn;
     @FXML private TableColumn<GameSessionSummary, String> dateColumn;
-    @FXML private TableColumn<GameSessionSummary, String> durationColumn;
     
     @FXML private Button refreshButton;
     @FXML private Button backButton;
@@ -61,15 +69,37 @@ public class LeaderboardController implements Initializable {
         gameIntegrationService = new GameIntegrationService();
         dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         
-        initializeTable();
+        initializeGlobalLeaderboardTable();
+        initializeUserHistoryTable();
         loadUserData();
+        loadGlobalLeaderboard();
         loadGameSessions();
     }
     
     /**
-     * Initializes the game sessions table with column bindings.
+     * Initializes the global leaderboard table with column bindings.
      */
-    private void initializeTable() {
+    private void initializeGlobalLeaderboardTable() {
+        if (globalLeaderboardTable == null) return;
+        
+        rankColumn.setCellValueFactory(cellData -> {
+            int index = globalLeaderboardTable.getItems().indexOf(cellData.getValue()) + 1;
+            return new SimpleIntegerProperty(index).asObject();
+        });
+        
+        usernameColumn.setCellValueFactory(cellData -> 
+            new SimpleStringProperty(cellData.getValue().getUsername()));
+        
+        totalPointsColumn.setCellValueFactory(cellData -> 
+            new SimpleIntegerProperty(cellData.getValue().getTotalPoints()).asObject());
+        
+        globalLeaderboardTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+    }
+    
+    /**
+     * Initializes the user game history table with column bindings.
+     */
+    private void initializeUserHistoryTable() {
         if (gameSessionsTable == null) return;
         
         difficultyColumn.setCellValueFactory(cellData -> 
@@ -90,15 +120,6 @@ public class LeaderboardController implements Initializable {
         dateColumn.setCellValueFactory(cellData -> 
             new SimpleStringProperty(dateFormat.format(cellData.getValue().getCreatedAt())));
         
-        durationColumn.setCellValueFactory(cellData -> {
-            long durationMs = cellData.getValue().getDuration();
-            long seconds = durationMs / 1000;
-            long minutes = seconds / 60;
-            seconds = seconds % 60;
-            return new SimpleStringProperty(String.format("%02d:%02d", minutes, seconds));
-        });
-        
-        // imposta il criterio di ridimensionamento delle colonne per compatibilità con JavaFX 8
         gameSessionsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
     }
     
@@ -176,12 +197,31 @@ public class LeaderboardController implements Initializable {
     }
     
     /**
+     * Loads and displays the global leaderboard.
+     */
+    private void loadGlobalLeaderboard() {
+        if (globalLeaderboardTable == null) return;
+        
+        List<UserLeaderboardEntry> leaderboard = gameIntegrationService.getGlobalLeaderboard();
+        ObservableList<UserLeaderboardEntry> tableData = FXCollections.observableArrayList(leaderboard);
+        globalLeaderboardTable.setItems(tableData);
+    }
+    
+    /**
      * Handles the refresh button click to reload data.
      */
     @FXML
     private void handleRefresh(ActionEvent event) {
         loadUserData();
         loadGameSessions();
+    }
+    
+    /**
+     * Handles the refresh global leaderboard button click.
+     */
+    @FXML
+    private void handleRefreshGlobal(ActionEvent event) {
+        loadGlobalLeaderboard();
     }
     
     /**

@@ -8,6 +8,7 @@ import wordageddon.dao.Database;
 import wordageddon.model.User;
 import wordageddon.model.GameSession;
 import wordageddon.model.GameSessionSummary;
+import wordageddon.model.UserLeaderboardEntry;
 import wordageddon.model.Answer;
 import java.util.List;
 import java.util.Collections;
@@ -221,6 +222,20 @@ public class GameIntegrationService {
             return gameSessionDAO.getGameSessionsByUser(userId);
         } catch (Exception e) {
             System.err.println("Error retrieving game sessions for user " + userId + ": " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Gets the global leaderboard showing all users with their total points.
+     * 
+     * @return list of user leaderboard entries ordered by total points
+     */
+    public List<UserLeaderboardEntry> getGlobalLeaderboard() {
+        try {
+            return gameSessionDAO.getGlobalLeaderboard();
+        } catch (Exception e) {
+            System.err.println("Error retrieving global leaderboard: " + e.getMessage());
             return Collections.emptyList();
         }
     }

@@ -45,7 +45,7 @@
    
    <!-- Game Statistics Section -->
    <VBox spacing="15" styleClass="stats-container">
-      <Label styleClass="section-title" text="Statistiche Gioco" />
+      <Label styleClass="section-title" text="Utenti e sessioni" />
       
       <HBox spacing="30" alignment="CENTER">
          <VBox spacing="5" styleClass="stat-card">

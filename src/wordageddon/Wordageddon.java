@@ -11,8 +11,7 @@ import javafx.stage.Stage;
  * 
  * Wordageddon is an educational JavaFX application that challenges users
  * to read and analyze text documents, then answer questions about word
- * frequencies and document content. The game features multiple difficulty
- * levels and provides a comprehensive text analysis learning experience.
+ * frequencies.
  * 
  * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0
@@ -36,7 +35,7 @@ public class Wordageddon extends Application {
         Scene scene = new Scene(root);
 
         // imposto il titolo dello stage (finestra)
-        stage.setTitle("Wordageddon - G10");
+        stage.setTitle("Benvenuto in Wordageddon");
 
         // imposto delle dimensioni minime per la finestra
         stage.setMinWidth(800);

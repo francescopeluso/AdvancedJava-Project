@@ -2,6 +2,7 @@ package wordageddon.dao;
 
 import wordageddon.model.GameSession;
 import wordageddon.model.GameSessionSummary;
+import wordageddon.model.UserLeaderboardEntry;
 import java.util.List;
 
 /**
@@ -74,5 +75,13 @@ public interface GameSessionDAO {
      * @return a list of game session summaries for the user
      */
     List<GameSessionSummary> getGameSessionSummariesByUser(int userId);
+
+    /**
+     * Retrieves the global leaderboard showing all users with their total points.
+     * Users are ordered by total points in descending order.
+     *
+     * @return a list of user leaderboard entries ordered by total points
+     */
+    List<UserLeaderboardEntry> getGlobalLeaderboard();
 
 }
