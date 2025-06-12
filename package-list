@@ -4,3 +4,4 @@ wordageddon.dao
 wordageddon.dao.implementation
 wordageddon.model
 wordageddon.service
+wordageddon.util
