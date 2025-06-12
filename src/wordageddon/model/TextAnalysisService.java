@@ -109,7 +109,7 @@ public class TextAnalysisService {
      * @param stopwords set of stopwords to filter out
      * @return a new DocumentTermMatrix populated with the processed documents
      */
-    public DocumentTermMatrix createDocumentTermMatrix(java.util.List<String> documents, Set<String> currentStopwords) {
+    public DocumentTermMatrix createDocumentTermMatrix(List<String> documents, Set<String> currentStopwords) {
         final Set<String> finalStopwords = currentStopwords != null ? new HashSet<>(currentStopwords) : new HashSet<>();
         System.out.println("[TextAnalysisService] Creating DTM. Stopwords received: " +
                            (currentStopwords == null ? "null" : currentStopwords.size()) +

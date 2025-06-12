@@ -24,6 +24,7 @@ import wordageddon.dao.GameSessionDAO;
 import wordageddon.dao.implementation.UserDAOSQLite;
 import wordageddon.dao.implementation.GameSessionDAOSQLite;
 
+import java.io.File;
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.List;
@@ -364,7 +365,7 @@ public class AdminController implements Initializable {
         );
         
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        java.io.File selectedFile = fileChooser.showOpenDialog(stage);
+        File selectedFile = fileChooser.showOpenDialog(stage);
         
         if (selectedFile != null) {
             try {
