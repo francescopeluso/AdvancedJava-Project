@@ -29,6 +29,7 @@ import wordageddon.service.GameInitializationService;
 import wordageddon.service.DocumentLoadingService;
 import wordageddon.service.GameIntegrationService;
 import wordageddon.service.UserSession;
+import wordageddon.service.AdminDocumentService;
 
 import java.io.File;
 import java.io.IOException;
@@ -214,6 +215,42 @@ public class GameController {
      * Performs asynchronous document loading using JavaFX Services.
      */
     private void initializeDocumentLoadingAsync() {
+        // Usa la DTM dall'AdminDocumentService invece di crearne una nuova
+        AdminDocumentService adminDocumentService = new AdminDocumentService();
+        
+        // Ottieni la DTM già generata con le stopwords corrette
+        DocumentTermMatrix adminDtm = adminDocumentService.getDocumentTermMatrix();
+        List<String> adminDocuments = adminDocumentService.getDocuments();
+        
+        if (adminDtm != null && adminDocuments != null && !adminDocuments.isEmpty()) {
+            // Usa direttamente la DTM e i documenti dall'admin service
+            dtm = adminDtm;
+            documentContents = new ArrayList<>(adminDocuments);
+            
+            // Crea i nomi dei documenti generici
+            visibleDocuments = new ArrayList<>();
+            for (int i = 0; i < Math.min(adminDocuments.size(), 3); i++) {
+                visibleDocuments.add("document_" + (i + 1));
+            }
+            
+            // Inizializza il GameEngine con la DTM e i documenti visibili
+            gameEngine = new GameEngine(dtm, visibleDocuments);
+            
+            System.out.println("Caricamento documenti completato con successo dalla DTM dell'admin!");
+            System.out.println("Documenti caricati: " + visibleDocuments.size());
+            System.out.println("Dimensione vocabolario DTM: " + dtm.getVocabularySize());
+            
+        } else {
+            // Fallback al sistema precedente se l'admin service non ha dati
+            System.out.println("Nessuna DTM trovata nell'admin service, uso il sistema di fallback...");
+            initializeDocumentLoadingAsyncFallback();
+        }
+    }
+    
+    /**
+     * Fallback method for document loading when admin service has no data.
+     */
+    private void initializeDocumentLoadingAsyncFallback() {
         // Crea e configura il service per il caricamento dei documenti
         File documentsDir = new File("data/documents/"); // Use persistent directory
         documentLoadingService = new DocumentLoadingService(textAnalysisService, documentsDir, 3);

@@ -136,7 +136,7 @@ public class TextAnalysisService {
             List<String> addedTermsForDoc = new ArrayList<>();
             List<String> filteredOutWords = new ArrayList<>();
 
-            String[] processedWords = content.toLowerCase().replaceAll("[^a-zàèéìòù]", " ").split("\\\\s+");
+            String[] processedWords = content.toLowerCase().replaceAll("[^a-zàèéìòù]", " ").split("\\s+");
 
             for (String word : processedWords) {
                 if (!word.isEmpty()) {
