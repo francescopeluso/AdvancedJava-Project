@@ -1,8 +1,6 @@
 package wordageddon.service;
 
 import wordageddon.model.User;
-import java.util.Map;
-import java.util.HashMap;
 
 /**
  * Singleton class for managing the current user session.
@@ -16,10 +14,6 @@ public class UserSession {
     
     private static UserSession instance;
     private User currentUser;
-    private long loginTime;
-    
-    // Mappa per le proprietà temporanee della sessione
-    private final Map<String, String> sessionProperties = new HashMap<>();
     
     private UserSession() {
         // Private constructor for singleton
@@ -44,7 +38,6 @@ public class UserSession {
      */
     public void setCurrentUser(User user) {
         this.currentUser = user;
-        this.loginTime = System.currentTimeMillis();
     }
     
     /**
@@ -93,75 +86,9 @@ public class UserSession {
     }
     
     /**
-     * Gets the time when the current user logged in.
-     * 
-     * @return the login timestamp in milliseconds
-     */
-    public long getLoginTime() {
-        return loginTime;
-    }
-    
-    /**
      * Logs out the current user by clearing the session.
      */
     public void logout() {
         this.currentUser = null;
-        this.loginTime = 0;
-        clearProperties();
-    }
-    
-    /**
-     * Gets the session duration in milliseconds.
-     * 
-     * @return the time since login, or 0 if no user is logged in
-     */
-    public long getSessionDuration() {
-        return isLoggedIn() ? System.currentTimeMillis() - loginTime : 0;
-    }
-    
-    /**
-     * Salva una proprietà temporanea nella sessione utente.
-     * 
-     * @param key la chiave della proprietà
-     * @param value il valore della proprietà
-     */
-    public void setProperty(String key, String value) {
-        sessionProperties.put(key, value);
-    }
-    
-    /**
-     * Recupera una proprietà temporanea dalla sessione utente.
-     * 
-     * @param key la chiave della proprietà
-     * @return il valore della proprietà, o null se non esiste
-     */
-    public String getProperty(String key) {
-        return sessionProperties.get(key);
-    }
-    
-    /**
-     * Verifica se una proprietà esiste nella sessione utente.
-     * 
-     * @param key la chiave della proprietà
-     * @return true se la proprietà esiste, false altrimenti
-     */
-    public boolean hasProperty(String key) {
-        return sessionProperties.containsKey(key);
-    }
-    
-    /**
-     * Rimuove una proprietà dalla sessione utente.
-     * 
-     * @param key la chiave della proprietà da rimuovere
-     */
-    public void removeProperty(String key) {
-        sessionProperties.remove(key);
-    }
-    
-    /**
-     * Pulisce tutte le proprietà temporanee della sessione.
-     */
-    public void clearProperties() {
-        sessionProperties.clear();
     }
 }
