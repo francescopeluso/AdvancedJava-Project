@@ -10,6 +10,7 @@ import wordageddon.model.GameSession;
 import wordageddon.model.GameSessionSummary;
 import wordageddon.model.UserLeaderboardEntry;
 import wordageddon.model.Answer;
+import wordageddon.util.PasswordUtils;
 import java.util.List;
 import java.util.Collections;
 
@@ -49,7 +50,10 @@ public class GameIntegrationService {
                 return false;
             }
             
-            userDAO.addUser(username, firstName, lastName, password, email, isAdmin);
+            // Crea un hash sicuro della password prima di memorizzarla
+            String hashedPassword = PasswordUtils.hashPassword(password);
+            
+            userDAO.addUser(username, firstName, lastName, hashedPassword, email, isAdmin);
             return true;
         } catch (Exception e) {
             System.err.println("Error registering user: " + e.getMessage());
@@ -67,11 +71,21 @@ public class GameIntegrationService {
     public User authenticateUser(String email, String password) {
         try {
             User user = userDAO.getUserByEmail(email);
-            if (user != null && user.getPassword().equals(password)) {
-                // imposta la sessione utente
+            if (user == null) {
+                return null;
+            }
+            
+            String storedPassword = user.getPassword();
+            
+            // Verifica la password usando l'hash memorizzato
+            boolean isAuthenticated = PasswordUtils.verifyPassword(password, storedPassword);
+            
+            if (isAuthenticated) {
+                // Imposta la sessione utente
                 UserSession.getInstance().setCurrentUser(user);
                 return user;
             }
+            
             return null;
         } catch (Exception e) {
             System.err.println("Error authenticating user: " + e.getMessage());
@@ -147,7 +161,15 @@ public class GameIntegrationService {
      */
     public boolean updateUser(String username, String firstName, String lastName, String password, String email, boolean isAdmin) {
         try {
-            userDAO.updateUser(username, firstName, lastName, password, email, isAdmin);
+            // Crea un hash sicuro della password prima di memorizzarla
+            String hashedPassword = password;
+            
+            // Solo se la password è stata fornita, hash la nuova password
+            if (password != null && !password.isEmpty()) {
+                hashedPassword = PasswordUtils.hashPassword(password);
+            }
+            
+            userDAO.updateUser(username, firstName, lastName, hashedPassword, email, isAdmin);
             return true;
         } catch (Exception e) {
             System.err.println("Error updating user: " + e.getMessage());
