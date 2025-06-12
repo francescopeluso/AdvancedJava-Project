@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.TreeSet;
 import java.util.Collections;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,12 +53,9 @@ public class DocumentTermMatrix implements Serializable {
      * @param word the term/word to add to the document
      */
     public void addTerm(String documentId, String word) {
-        // non si ha traccia del documento specificato, allora creo il suo hashset
-        matrix.computeIfAbsent(documentId, k -> new HashMap<>());
-        
-        // prelevo la lista delle occorrenze del documento e aggiorno il contatore per la parola indicata
-        Map<String, Integer> terms = matrix.get(documentId);
-        terms.put(word, terms.getOrDefault(word, 0) + 1);
+        // ottengo la mappa per il documento (creandola se non esiste) e incremento il contatore della parola
+        matrix.computeIfAbsent(documentId, k -> new HashMap<>())
+              .compute(word, (k, v) -> v == null ? 1 : v + 1);
     }
     
     /**
@@ -67,10 +65,7 @@ public class DocumentTermMatrix implements Serializable {
      * @return a TreeSet containing all unique terms found in any document
      */
     public Set<String> getAllTerms() {
-        /* tramite la stream delle values della hashmap che implementa la document term matrix, vado a
-         * prendere tutti gli insiemi di parole (keySet) associati ai documenti, li unisco in un unico stream
-         * e li raccolgo in un set ordinato lessicograficamente che rappresenta tutte le parole presenti nella matrice
-         */
+        // raccolgo tutte le parole da tutti i documenti in un unico set ordinato
         return matrix.values().stream()
                 .flatMap(doc -> doc.keySet().stream())
                 .collect(Collectors.toCollection(TreeSet::new));
@@ -155,38 +150,35 @@ public class DocumentTermMatrix implements Serializable {
     public static void main(String[] args) {
         DocumentTermMatrix dtm = new DocumentTermMatrix();
         
-        dtm.addTerm("doc1.txt", "cane");
-        dtm.addTerm("doc1.txt", "gatto");
-        dtm.addTerm("doc1.txt", "cane");
-        dtm.addTerm("doc2.txt", "topo");
-        dtm.addTerm("doc2.txt", "gatto");
-        dtm.addTerm("doc2.txt", "gatto");
+        // test di inserimento di termini
+        Stream.of(
+            new String[]{"doc1.txt", "cane"},
+            new String[]{"doc1.txt", "gatto"},
+            new String[]{"doc1.txt", "cane"},
+            new String[]{"doc2.txt", "topo"},
+            new String[]{"doc2.txt", "gatto"},
+            new String[]{"doc2.txt", "gatto"}
+        ).forEach(data -> dtm.addTerm(data[0], data[1]));
         
         System.out.println("--- Document Term Matrix - Test 1 ---");
         System.out.println("Frequenze in doc1.txt: " + dtm.getTermsForDocument("doc1.txt"));
         System.out.println("Frequenza di 'gatto' in doc2.txt: " + dtm.getFrequency("doc2.txt", "gatto"));
         
-        // provo a salvare su un file
+        // test di serializzazione
         try {
             File exportFile = new File("demo_export");
             dtm.saveToFile(exportFile);
             
             System.out.println("File salvato in: " + exportFile.getAbsolutePath());
-        } catch (Exception ex) {
-            System.err.println("Errore nel salvataggio: " + ex.getCause());
-        }
-        
-        // provo a leggere il file appena creato, salvando il contenuto in un'altra istanza della DTM
-        try {
-            File importFile = new File("demo_export");
-            DocumentTermMatrix dtm2 = DocumentTermMatrix.loadFromFile(importFile);
+            
+            // test di deserializzazione
+            DocumentTermMatrix dtm2 = DocumentTermMatrix.loadFromFile(exportFile);
             
             System.out.println("\n--- Document Term Matrix - Test 2 ---");
             System.out.println("Frequenze in doc2.txt: " + dtm2.getTermsForDocument("doc2.txt"));
             System.out.println("Frequenza di 'cane' in doc1.txt: " + dtm2.getFrequency("doc1.txt", "cane"));
         } catch (Exception ex) {
-            System.err.println("Errore nella lettura: " + ex.getCause());
+            System.err.println("Errore di I/O: " + ex.getMessage());
         }
-        
     }
 }

@@ -21,11 +21,24 @@ public class GameDataContainer implements Serializable {
     private Set<String> stopwords;
     private long lastUpdated;
     
+    /**
+     * Constructs a new GameDataContainer with default values.
+     * Initializes the timestamp to current time.
+     */
     public GameDataContainer() {
+        // inizializzo con il timestamp corrente
         this.lastUpdated = System.currentTimeMillis();
     }
     
+    /**
+     * Constructs a new GameDataContainer with specified values.
+     * 
+     * @param dtm the Document-Term Matrix
+     * @param documents list of document contents
+     * @param stopwords set of stopwords
+     */
     public GameDataContainer(DocumentTermMatrix dtm, List<String> documents, Set<String> stopwords) {
+        // inizializzo con i valori forniti
         this.documentTermMatrix = dtm;
         this.documents = documents;
         this.stopwords = stopwords;

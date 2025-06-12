@@ -18,7 +18,7 @@ import javafx.stage.FileChooser;
 import wordageddon.model.User;
 import wordageddon.model.GameSession;
 import wordageddon.service.UserSession;
-import wordageddon.service.AdminDocumentService;
+import wordageddon.service.DocumentServices;
 import wordageddon.dao.UserDAO;
 import wordageddon.dao.GameSessionDAO;
 import wordageddon.dao.implementation.UserDAOSQLite;
@@ -75,7 +75,7 @@ public class AdminController implements Initializable {
     // Services and DAOs
     private UserDAO userDAO;
     private GameSessionDAO gameSessionDAO;
-    private AdminDocumentService adminDocumentService;
+    private DocumentServices documentServices;
     
     // Data
     private ObservableList<User> usersList;
@@ -88,7 +88,7 @@ public class AdminController implements Initializable {
         // Initialize DAOs and services
         userDAO = new UserDAOSQLite();
         gameSessionDAO = new GameSessionDAOSQLite();
-        adminDocumentService = new AdminDocumentService();
+        documentServices = new DocumentServices();
         
         // Initialize user list
         usersList = FXCollections.observableArrayList();
@@ -327,13 +327,13 @@ public class AdminController implements Initializable {
     private void loadDocumentData() {
         try {
             // Update document statistics
-            Map<String, Integer> stats = adminDocumentService.getStatistics();
+            Map<String, Integer> stats = documentServices.getStatistics();
             documentsCountLabel.setText(String.valueOf(stats.get("documents")));
             stopwordsCountLabel.setText(String.valueOf(stats.get("stopwords")));
             vocabularyCountLabel.setText(String.valueOf(stats.get("vocabulary")));
             
             // Update documents list
-            List<String> documents = adminDocumentService.getDocuments();
+            List<String> documents = documentServices.getDocuments();
             ObservableList<String> documentItems = FXCollections.observableArrayList();
             for (int i = 0; i < documents.size(); i++) {
                 String doc = documents.get(i);
@@ -344,7 +344,7 @@ public class AdminController implements Initializable {
             documentsListView.setItems(documentItems);
             
             // Load stopwords into TextArea
-            String stopwordsText = adminDocumentService.getStopwordsAsText();
+            String stopwordsText = documentServices.getStopwordsAsText();
             stopwordsTextArea.setText(stopwordsText);
             
         } catch (Exception e) {
@@ -369,7 +369,7 @@ public class AdminController implements Initializable {
         
         if (selectedFile != null) {
             try {
-                boolean success = adminDocumentService.loadDocumentFromFile(selectedFile.getAbsolutePath());
+                boolean success = documentServices.loadDocumentFromFile(selectedFile.getAbsolutePath());
                 if (success) {
                     loadDocumentData();
                     documentStatusLabel.setText("Documento caricato: " + selectedFile.getName());
@@ -393,7 +393,7 @@ public class AdminController implements Initializable {
         String stopwordsText = stopwordsTextArea.getText();
         
         try {
-            boolean success = adminDocumentService.updateStopwordsFromText(stopwordsText);
+            boolean success = documentServices.updateStopwordsFromText(stopwordsText);
             if (success) {
                 loadDocumentData();
                 stopwordsStatusLabel.setText("Stopwords aggiornate con successo!");
@@ -415,7 +415,7 @@ public class AdminController implements Initializable {
     private void handleRegenerateDtm(ActionEvent event) {
         try {
             // Force regeneration by calling the service method
-            adminDocumentService.regenerateAndSaveDtm(); // Updated call
+            documentServices.regenerateAndSaveDtm(); // Updated call
             loadDocumentData(); // Then refresh UI
             showAlert("DTM Rigenerata", "La Document Term Matrix è stata rigenerata con successo.");
         } catch (Exception e) {
@@ -436,7 +436,7 @@ public class AdminController implements Initializable {
         }
         
         try {
-            boolean success = adminDocumentService.removeDocument(selectedIndex);
+            boolean success = documentServices.removeDocument(selectedIndex);
             if (success) {
                 loadDocumentData();
                 showAlert("Documento Rimosso", "Il documento è stato rimosso con successo e la DTM è stata rigenerata.");

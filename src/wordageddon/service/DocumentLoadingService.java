@@ -75,7 +75,7 @@ public class DocumentLoadingService extends Service<DocumentLoadingService.Docum
                 // ottieni tutti i documenti disponibili
                 File[] files = documentsDirectory.listFiles((dir, name) -> name.endsWith(".txt"));
                 if (files == null || files.length == 0) {
-                    throw new IOException("Nessun documento trovato nella directory documents/");
+                    throw new IOException("Nessun documento trovato nella directory data/documents/");
                 }
 
                 updateMessage("Selezione documenti casuali...");

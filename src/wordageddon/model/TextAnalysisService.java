@@ -47,11 +47,12 @@ public class TextAnalysisService {
      */
     public void loadStopwords(File stopwordsFile) throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(stopwordsFile))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.trim().startsWith("//")) continue;          // commento in un file di stopwords (deprecato, non gestisco più le stopword da file)
-                this.stopwords.add(line.trim().toLowerCase());
-            }
+            // uso uno stream per processare le linee del file
+            reader.lines()
+                  .map(String::trim)
+                  .filter(line -> !line.isEmpty() && !line.startsWith("//"))
+                  .map(String::toLowerCase)
+                  .forEach(this.stopwords::add);
         }
     }
 
@@ -72,16 +73,10 @@ public class TextAnalysisService {
             throw new IOException("Directory non valida o vuota: " + documentsDir.getAbsolutePath());
         }
 
-        /* utilizzo una stream sull'oggetto 'files' (un array di String) per accedere a ciascun file di interesse.
-         * per ogni file, leggo il contenuto, e tramite il suo stream vado a manipolare il contenuto per "normalizzare"
-         * il tutto, filtrare le stopwoerds e gestire la parola trovata nella DTM
-         * */
+        // utilizzo una stream sull'oggetto 'files' per accedere a ciascun file e processarlo
         Arrays.stream(files).forEach(file -> {
             try {
-                String content = new String(Files.readAllBytes(file.toPath()));
-                Arrays.stream(content.toLowerCase().replaceAll("[^a-zàèéìòù]", " ").split("\\s+"))
-                    .filter(word -> !word.isEmpty() && !this.stopwords.contains(word))
-                    .forEach(word -> dtm.addTerm(file.getName(), word));
+                processDocument(dtm, file);
             } catch (IOException e) {
                 throw new RuntimeException("Errore nella lettura del file: " + file.getName(), e);
             }
@@ -96,6 +91,7 @@ public class TextAnalysisService {
      * @throws IOException if the file cannot be read
      */
     public void processDocument(DocumentTermMatrix dtm, File file) throws IOException {
+        // leggo il contenuto del file, lo normalizzo e filtro le stopwords
         String content = new String(Files.readAllBytes(file.toPath()));
         Arrays.stream(content.toLowerCase().replaceAll("[^a-zàèéìòù]", " ").split("\\s+"))
             .filter(word -> !word.isEmpty() && !this.stopwords.contains(word))
@@ -110,11 +106,13 @@ public class TextAnalysisService {
      * @return a new DocumentTermMatrix populated with the processed documents
      */
     public DocumentTermMatrix createDocumentTermMatrix(List<String> documents, Set<String> currentStopwords) {
+        // creo una copia difensiva delle stopwords
         final Set<String> finalStopwords = currentStopwords != null ? new HashSet<>(currentStopwords) : new HashSet<>();
         System.out.println("[TextAnalysisService] Creating DTM. Stopwords received: " +
-                           (currentStopwords == null ? "null" : currentStopwords.size()) +
-                           ". Effective stopwords for this DTM build: " + finalStopwords.size() + 
-                           " -> [" + finalStopwords.stream().limit(20).collect(Collectors.joining(", ")) + (finalStopwords.size() > 20 ? "..." : "") + "]");
+                          (currentStopwords == null ? "null" : currentStopwords.size()) +
+                          ". Effective stopwords for this DTM build: " + finalStopwords.size() + 
+                          " -> [" + finalStopwords.stream().limit(20).collect(Collectors.joining(", ")) + 
+                          (finalStopwords.size() > 20 ? "..." : "") + "]");
 
         DocumentTermMatrix dtm = new DocumentTermMatrix();
         boolean firstDocLogged = false;
@@ -124,6 +122,7 @@ public class TextAnalysisService {
             return dtm;
         }
 
+        // processo ogni documento nella lista
         for (int i = 0; i < documents.size(); i++) {
             String content = documents.get(i);
             if (content == null || content.trim().isEmpty()) {
@@ -132,12 +131,17 @@ public class TextAnalysisService {
             }
             String documentId = "document_" + (i + 1);
 
+            // raccolgo statistiche sul documento per il logging
             List<String> allWordsInDoc = new ArrayList<>();
             List<String> addedTermsForDoc = new ArrayList<>();
             List<String> filteredOutWords = new ArrayList<>();
 
-            String[] processedWords = content.toLowerCase().replaceAll("[^a-zàèéìòù]", " ").split("\\s+");
+            // normalizzazione del contenuto: lowercase e rimozione dei caratteri non alfabetici
+            String[] processedWords = content.toLowerCase()
+                    .replaceAll("[^a-zàèéìòù]", " ")
+                    .split("\\s+");
 
+            // processo ciascuna parola del documento
             for (String word : processedWords) {
                 if (!word.isEmpty()) {
                     allWordsInDoc.add(word);
@@ -150,23 +154,50 @@ public class TextAnalysisService {
                 }
             }
 
+            // logging solo per il primo documento processato
             if (!firstDocLogged) {
-                System.out.println("[TextAnalysisService] Processing first document (ID: " + documentId + ")");
-                System.out.println("    Original words (sample): [" + allWordsInDoc.stream().limit(15).collect(Collectors.joining(", ")) + (allWordsInDoc.size() > 15 ? "..." : "") + "]");
-                System.out.println("    Stopwords found in doc (sample): [" + filteredOutWords.stream().limit(15).collect(Collectors.joining(", ")) + (filteredOutWords.size() > 15 ? "..." : "") + "]");
-                System.out.println("    Terms added to DTM for this doc (sample): [" + addedTermsForDoc.stream().limit(15).collect(Collectors.joining(", ")) + (addedTermsForDoc.size() > 15 ? "..." : "") + "]");
-                // Example check for a common stopword if present in lists
-                String testStopword = "il"; 
-                boolean stopwordInSet = finalStopwords.contains(testStopword);
-                boolean stopwordInDocWords = allWordsInDoc.contains(testStopword);
-                if (stopwordInDocWords) {
-                     System.out.println("    DEBUG: Test stopword '" + testStopword + "': In finalStopwordsSet? " + stopwordInSet + ". In document words? " + stopwordInDocWords + ". Should be filtered if both true.");
-                }
+                logFirstDocumentProcessing(documentId, allWordsInDoc, filteredOutWords, 
+                                          addedTermsForDoc, finalStopwords);
                 firstDocLogged = true;
             }
         }
         System.out.println("[TextAnalysisService] DTM creation complete. Vocabulary size: " + dtm.getVocabularySize());
         return dtm;
+    }
+    
+    /**
+     * Logs processing information for the first document.
+     * 
+     * @param documentId ID of the document
+     * @param allWordsInDoc all words in the document
+     * @param filteredOutWords words filtered out as stopwords
+     * @param addedTermsForDoc terms added to the DTM
+     * @param finalStopwords set of stopwords used for filtering
+     */
+    private void logFirstDocumentProcessing(String documentId, List<String> allWordsInDoc, 
+                                           List<String> filteredOutWords, List<String> addedTermsForDoc,
+                                           Set<String> finalStopwords) {
+        System.out.println("[TextAnalysisService] Processing first document (ID: " + documentId + ")");
+        System.out.println("    Original words (sample): [" + 
+                           allWordsInDoc.stream().limit(15).collect(Collectors.joining(", ")) + 
+                           (allWordsInDoc.size() > 15 ? "..." : "") + "]");
+        System.out.println("    Stopwords found in doc (sample): [" + 
+                           filteredOutWords.stream().limit(15).collect(Collectors.joining(", ")) + 
+                           (filteredOutWords.size() > 15 ? "..." : "") + "]");
+        System.out.println("    Terms added to DTM for this doc (sample): [" + 
+                           addedTermsForDoc.stream().limit(15).collect(Collectors.joining(", ")) + 
+                           (addedTermsForDoc.size() > 15 ? "..." : "") + "]");
+        
+        // verifica di un esempio di stopword se presente nel documento
+        String testStopword = "il"; 
+        boolean stopwordInSet = finalStopwords.contains(testStopword);
+        boolean stopwordInDocWords = allWordsInDoc.contains(testStopword);
+        if (stopwordInDocWords) {
+            System.out.println("    DEBUG: Test stopword '" + testStopword + 
+                               "': In finalStopwordsSet? " + stopwordInSet + 
+                               ". In document words? " + stopwordInDocWords + 
+                               ". Should be filtered if both true.");
+        }
     }
 
 

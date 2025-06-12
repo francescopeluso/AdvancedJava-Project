@@ -29,7 +29,8 @@ import wordageddon.service.GameInitializationService;
 import wordageddon.service.DocumentLoadingService;
 import wordageddon.service.GameIntegrationService;
 import wordageddon.service.UserSession;
-import wordageddon.service.AdminDocumentService;
+import wordageddon.service.DocumentServices;
+import wordageddon.service.QuestionGeneratorService;
 
 import java.io.File;
 import java.io.IOException;
@@ -156,6 +157,9 @@ public class GameController {
     private Set<String> usedFrequencyQuestions;
     /** Set to track used most-frequent-word question documents */
     private Set<String> usedMostFrequentQuestions;
+    
+    /** Service for generating diverse question types */
+    private QuestionGeneratorService questionGenerator;
 
     /**
      * Initializes the game controller by setting up services for asynchronous operations.
@@ -215,12 +219,12 @@ public class GameController {
      * Performs asynchronous document loading using JavaFX Services.
      */
     private void initializeDocumentLoadingAsync() {
-        // Usa la DTM dall'AdminDocumentService invece di crearne una nuova
-        AdminDocumentService adminDocumentService = new AdminDocumentService();
+        // Usa la DTM da DocumentServices invece di crearne una nuova
+        DocumentServices documentServices = new DocumentServices();
         
         // Ottieni la DTM già generata con le stopwords corrette
-        DocumentTermMatrix adminDtm = adminDocumentService.getDocumentTermMatrix();
-        List<String> adminDocuments = adminDocumentService.getDocuments();
+        DocumentTermMatrix adminDtm = documentServices.getDocumentTermMatrix();
+        List<String> adminDocuments = documentServices.getDocuments();
         
         if (adminDtm != null && adminDocuments != null && !adminDocuments.isEmpty()) {
             // Usa direttamente la DTM e i documenti dall'admin service
@@ -235,6 +239,9 @@ public class GameController {
             
             // Inizializza il GameEngine con la DTM e i documenti visibili
             gameEngine = new GameEngine(dtm, visibleDocuments);
+            
+            // Inizializza il generatore di domande
+            questionGenerator = new QuestionGeneratorService(dtm, visibleDocuments);
             
             System.out.println("Caricamento documenti completato con successo dalla DTM dell'admin!");
             System.out.println("Documenti caricati: " + visibleDocuments.size());
@@ -266,6 +273,9 @@ public class GameController {
             
             // Inizializza il GameEngine con la DTM e i documenti visibili
             gameEngine = new GameEngine(dtm, visibleDocuments);
+            
+            // Inizializza il generatore di domande
+            questionGenerator = new QuestionGeneratorService(dtm, visibleDocuments);
             
             System.out.println("Caricamento documenti completato con successo!");
             System.out.println("Documenti caricati: " + visibleDocuments.size());
@@ -522,6 +532,12 @@ public class GameController {
             gameEngine = new GameEngine(dtm, visibleDocuments);
         }
         
+        // reset del generatore di domande
+        if (questionGenerator != null && dtm != null && visibleDocuments != null) {
+            questionGenerator = new QuestionGeneratorService(dtm, visibleDocuments);
+            questionGenerator.resetTracking();
+        }
+        
         // pulisce tutti gli elementi UI
         clearDocumentViews();
         clearQuestionView();
@@ -531,7 +547,7 @@ public class GameController {
         // reset game session
         currentGameSession = null;
         
-        // reset question tracking sets
+        // reset question tracking sets (per retrocompatibilità)
         if (usedFrequencyQuestions != null) {
             usedFrequencyQuestions.clear();
         }
@@ -632,6 +648,7 @@ public class GameController {
         documentContents.add("Contenuto di esempio per test");
         
         gameEngine = new GameEngine(dtm, visibleDocuments);
+        questionGenerator = new QuestionGeneratorService(dtm, visibleDocuments);
     }
     
     /**
@@ -652,17 +669,34 @@ public class GameController {
         doc2.clear();
         doc3.clear();
         
-        // Nascondi tutte le TextArea
+        // Nascondi tutte le TextArea e i loro container
         doc1.setVisible(false);
         doc2.setVisible(false);
         doc3.setVisible(false);
         
-        // Aggiusta la larghezza delle TextArea in base al numero di documenti
-        double containerWidth = 750; // Larghezza approssimativa del container
-        double spacing = 15;
-        double margin = 20;
-        double availableWidth = containerWidth - (numberOfDocuments - 1) * spacing - margin * 2;
-        double docWidth = availableWidth / numberOfDocuments;
+        // Ottieni i VBox contenitori dei documenti
+        VBox doc1Container = (VBox) doc1.getParent();
+        VBox doc2Container = (VBox) doc2.getParent();
+        VBox doc3Container = (VBox) doc3.getParent();
+        
+        // Nascondi tutti i container
+        doc1Container.setVisible(false);
+        doc1Container.setManaged(false);
+        doc2Container.setVisible(false);
+        doc2Container.setManaged(false);
+        doc3Container.setVisible(false);
+        doc3Container.setManaged(false);
+        
+        // Ottieni i parametri per il calcolo della larghezza
+        double containerWidth = documentsContainer.getPrefWidth();
+        if (containerWidth <= 0) {
+            containerWidth = 850; // Larghezza di default se non specificata
+        }
+        
+        // Configura HBox.hgrow per ogni container per permettere il ridimensionamento
+        HBox.setHgrow(doc1Container, Priority.ALWAYS);
+        HBox.setHgrow(doc2Container, Priority.ALWAYS);
+        HBox.setHgrow(doc3Container, Priority.ALWAYS);
         
         // Mostra e carica solo il numero di documenti necessari
         for (int i = 0; i < numberOfDocuments && i < documentContents.size(); i++) {
@@ -670,17 +704,20 @@ public class GameController {
                 case 0:
                     doc1.setText(documentContents.get(0));
                     doc1.setVisible(true);
-                    doc1.setPrefWidth(docWidth);
+                    doc1Container.setVisible(true);
+                    doc1Container.setManaged(true);
                     break;
                 case 1:
                     doc2.setText(documentContents.get(1));
                     doc2.setVisible(true);
-                    doc2.setPrefWidth(docWidth);
+                    doc2Container.setVisible(true);
+                    doc2Container.setManaged(true);
                     break;
                 case 2:
                     doc3.setText(documentContents.get(2));
                     doc3.setVisible(true);
-                    doc3.setPrefWidth(docWidth);
+                    doc3Container.setVisible(true);
+                    doc3Container.setManaged(true);
                     break;
             }
         }
@@ -693,6 +730,11 @@ public class GameController {
         
         // Aggiorna il GameEngine con i documenti correnti
         gameEngine = new GameEngine(dtm, currentGameDocuments);
+        
+        // Aggiorna il generatore di domande con i documenti correnti
+        if (questionGenerator != null) {
+            questionGenerator = new QuestionGeneratorService(dtm, currentGameDocuments);
+        }
         
         System.out.println("Documenti preparati per difficoltà: " + numberOfDocuments + " documenti visibili");
         System.out.println("Documenti correnti: " + currentGameDocuments);
@@ -795,343 +837,58 @@ public class GameController {
     
     /**
      * Generates all questions for the current game session.
-     * Creates a mix of frequency questions and most-frequent-word questions.
+     * Creates a mix of various question types:
+     * - Absolute frequency: how many times a word appears in a document
+     * - Relative frequency comparison: comparing frequencies of different words
+     * - Document-specific word association: which document contains a specific word
+     * - Exclusion questions: which word never appears in a document
+     * 
      * The number of questions generated depends on the selected difficulty level.
-     * Implements smart fallback when unique questions can't be generated.
+     * Questions are not repeated within the same session.
      */
     // Metodo per generare tutte le domande
     private void generateAllQuestions(String difficulty) {
+        // Aggiorna la configurazione del generatore di domande
+        if (questionGenerator == null) {
+            System.err.println("Error: QuestionGenerator non inizializzato. Creazione di emergenza.");
+            questionGenerator = new QuestionGeneratorService(dtm, currentGameDocuments != null ? 
+                currentGameDocuments : visibleDocuments);
+        } else {
+            // Aggiorna i documenti del generatore per assicurarsi siano corretti
+            questionGenerator = new QuestionGeneratorService(dtm, currentGameDocuments);
+        }
+        
         List<Question> questions = new ArrayList<>();
+        questionGenerator.resetTracking();
         
-        // Clear tracking sets at the start of new game
-        usedFrequencyQuestions.clear();
-        usedMostFrequentQuestions.clear();
+        System.out.println("Generazione di " + totalQuestions + " domande per la difficoltà: " + difficulty);
         
-        int generatedQuestions = 0;
-        int maxRetries = 3; // Maximum retries for each question type
-        
+        // Generazione domande di varie tipologie
         for (int i = 0; i < totalQuestions; i++) {
-            boolean questionGenerated = false;
-            
-            // Try to generate a question, alternating between types
-            for (int retry = 0; retry < maxRetries && !questionGenerated; retry++) {
-                if (Math.random() < 0.5) {
-                    int sizeBefore = questions.size();
-                    generateFrequencyQuestion(questions);
-                    if (questions.size() > sizeBefore) {
-                        questionGenerated = true;
-                        generatedQuestions++;
-                    }
-                } else {
-                    int sizeBefore = questions.size();
-                    generateMostFrequentWordQuestion(questions);
-                    if (questions.size() > sizeBefore) {
-                        questionGenerated = true;
-                        generatedQuestions++;
-                    }
-                }
-            }
-            
-            // If we still couldn't generate a question, try the other type
-            if (!questionGenerated) {
-                for (int retry = 0; retry < maxRetries && !questionGenerated; retry++) {
-                    if (Math.random() < 0.5) {
-                        int sizeBefore = questions.size();
-                        generateMostFrequentWordQuestion(questions);
-                        if (questions.size() > sizeBefore) {
-                            questionGenerated = true;
-                            generatedQuestions++;
-                        }
-                    } else {
-                        int sizeBefore = questions.size();
-                        generateFrequencyQuestion(questions);
-                        if (questions.size() > sizeBefore) {
-                            questionGenerated = true;
-                            generatedQuestions++;
-                        }
-                    }
-                }
-            }
-            
-            // Final fallback: generate a simple generic question
-            if (!questionGenerated) {
-                generateFallbackQuestion(questions);
-                generatedQuestions++;
+            // Genera una domanda di tipo casuale usando il service
+            Question question = questionGenerator.generateRandomQuestion(i + 1);
+            if (question != null) {
+                questions.add(question);
+                System.out.println("Generated question " + (i + 1) + ": " + question.getQuestionText());
+            } else {
+                System.err.println("Failed to generate question " + (i + 1));
             }
         }
         
-        System.out.println("Generated " + generatedQuestions + " questions for difficulty: " + difficulty);
+        System.out.println("Generate " + questions.size() + " domande per la difficoltà: " + difficulty);
         
         // Crea una nuova sessione di gioco con le domande generate
         currentGameSession = new GameSession(difficulty, questions);
     }
     
     /**
-     * Converts a document filename to a generic document name for display.
-     * Maps documents to "Documento 1", "Documento 2", etc. based on their order.
-     * 
-     * @param filename the actual filename of the document
-     * @return a generic document name for display
+     * Shows the final results view with score, percentage, and feedback message.
+     * Calculates the final score percentage and provides appropriate feedback:
+     * - 80%+ : "Eccellente! Hai una ottima comprensione dei testi!"
+     * - 60-79%: "Buon lavoro! Puoi ancora migliorare."
+     * - <60%  : "Continua a praticare per migliorare le tue capacità di analisi testuale."
+     * Also automatically populates the question review table.
      */
-    private String getGenericDocumentName(String filename) {
-        if (currentGameDocuments == null || filename == null) {
-            return "Documento 1";
-        }
-        
-        int index = currentGameDocuments.indexOf(filename);
-        if (index >= 0) {
-            return "Documento " + (index + 1);
-        }
-        
-        // Fallback if document not found in current game documents
-        return "Documento 1";
-    }
-
-    /**
-     * Generates a frequency-based question asking about word occurrence count.
-     * Selects a random word from a random document and creates multiple-choice options
-     * with the correct frequency and plausible alternatives.
-     * Ensures no duplicate questions are generated during the same game session.
-     */
-    // Metodo per generare una domanda sulla frequenza
-    private void generateFrequencyQuestion(List<Question> questions) {
-        if (currentGameDocuments == null || currentGameDocuments.isEmpty() || dtm == null) {
-            System.out.println("[GameController] Cannot generate frequency question: missing documents or DTM.");
-            addFallbackFrequencyQuestion(questions); // Add fallback if essential components are missing
-            return;
-        }
-        
-        int maxAttempts = 50; // Increased attempts
-        int attempts = 0;
-        
-        while (attempts < maxAttempts) {
-            String doc = currentGameDocuments.get((int)(Math.random() * currentGameDocuments.size()));
-            Map<String, Integer> termFreq = dtm.getTermsForDocument(doc);
-            
-            if (termFreq != null && !termFreq.isEmpty()) { // Check if termFreq is not null
-                List<String> words = new ArrayList<>(termFreq.keySet());
-                if (words.isEmpty()) { // If no words for this doc, try another or fallback
-                    attempts++;
-                    continue;
-                }
-                String word = words.get((int)(Math.random() * words.size()));
-                
-                String questionKey = doc + "|" + word;
-                
-                if (!usedFrequencyQuestions.contains(questionKey)) {
-                    usedFrequencyQuestions.add(questionKey);
-                    
-                    int correctFreq = termFreq.get(word);
-                    String genericDocName = getGenericDocumentName(doc);
-                    
-                    // Corrected String.format
-                    String questionText = String.format("Quante volte compare la parola \"%s\" nel %s?", word, genericDocName);
-                    
-                    Set<Integer> options = new HashSet<>();
-                    options.add(correctFreq);
-                    
-                    // Ensure options are distinct and plausible
-                    int optionRange = Math.max(5, correctFreq / 2); // Dynamic range for options
-                    while (options.size() < 4) {
-                        int variation = (int)(Math.random() * optionRange) + 1;
-                        int optionValue = Math.random() < 0.5 ? correctFreq + variation : Math.max(0, correctFreq - variation);
-                        if (optionValue != correctFreq) { // Ensure options are different from correct answer if possible
-                           options.add(optionValue);
-                        } else if (options.size() < 2 && correctFreq == 0) { // Allow 0 if it's the only option so far
-                           options.add(optionValue +1); // Add a slightly different value if correct is 0
-                        } else if (options.size() < 2) {
-                           options.add(optionValue + (options.size() % 2 == 0 ? 1 : -1)); // Ensure some variation
-                        }
-                    }
-                    
-                    List<String> optionStrings = new ArrayList<>();
-                    List<Integer> optionsList = new ArrayList<>(options);
-                    Collections.shuffle(optionsList);
-                    
-                    int correctIndex = -1;
-                    for (int i = 0; i < optionsList.size(); i++) {
-                        optionStrings.add(String.valueOf(optionsList.get(i)));
-                        if (optionsList.get(i) == correctFreq) {
-                            correctIndex = i;
-                        }
-                    }
-                     // Ensure correctIndex is found
-                    if (correctIndex == -1) {
-                        System.err.println("Error: Correct answer not found in options for frequency question. Word: " + word + ", Freq: " + correctFreq + ", Options: " + optionsList);
-                        attempts++; // Try again
-                        usedFrequencyQuestions.remove(questionKey); // Remove key as question failed
-                        continue;
-                    }
-                    
-                    Question question = new Question(questions.size() + 1, questionText, optionStrings, correctIndex);
-                    questions.add(question);
-                    System.out.println("[GameController] Generated Frequency Question: " + questionText + " Key: " + questionKey);
-                    return; 
-                }
-            }
-            attempts++;
-        }
-        
-        System.out.println("[GameController] Could not generate unique frequency question after " + maxAttempts + " attempts. Adding fallback.");
-        addFallbackFrequencyQuestion(questions);
-    }
-    
-    private void addFallbackFrequencyQuestion(List<Question> questions) {
-        String docName = !currentGameDocuments.isEmpty() ? getGenericDocumentName(currentGameDocuments.get(0)) : "Documento 1";
-        String questionText = String.format("Qual è la frequenza della parola 'esempio' nel %s?", docName);
-        List<String> options = Arrays.asList("1", "2", "3", "0");
-        Collections.shuffle(options);
-        int correctIndex = options.indexOf("0"); 
-        Question question = new Question(questions.size() + 1, questionText, options, correctIndex);
-        questions.add(question);
-        System.out.println("[GameController] Added Fallback Frequency Question.");
-    }
-
-    /**
-     * Generates a most-frequent-word question asking which word appears most often.
-     * Selects a random document and creates multiple-choice options with the correct
-     * most frequent word and other words from the same document as alternatives.
-     * Ensures no duplicate questions are generated during the same game session.
-     */
-    // Metodo per generare una domanda sulla parola più frequente
-    private void generateMostFrequentWordQuestion(List<Question> questions) {
-        if (currentGameDocuments == null || currentGameDocuments.isEmpty() || dtm == null) {
-            System.out.println("[GameController] Cannot generate most frequent word question: missing documents or DTM.");
-            addFallbackMostFrequentWordQuestion(questions); // Add fallback
-            return;
-        }
-        
-        int maxAttempts = 50; // Increased attempts
-        int attempts = 0;
-        
-        while (attempts < maxAttempts) {
-            String doc = currentGameDocuments.get((int)(Math.random() * currentGameDocuments.size()));
-            
-            if (!usedMostFrequentQuestions.contains(doc) || usedMostFrequentQuestions.size() >= currentGameDocuments.size()) { // Allow reuse if all docs used once
-                
-                Map<String, Integer> termFreq = dtm.getTermsForDocument(doc);
-                
-                if (termFreq != null && !termFreq.isEmpty() && termFreq.size() >= 4) { // Ensure enough words for options
-                    // Add to used set only if not allowing full reuse yet
-                    if (!usedMostFrequentQuestions.contains(doc)) {
-                         usedMostFrequentQuestions.add(doc);
-                    }
-
-                    String correctWord = termFreq.entrySet().stream()
-                            .max(Map.Entry.comparingByValue())
-                            .map(Map.Entry::getKey).orElse(null);
-                    
-                    if (correctWord == null) { // Should not happen if termFreq is not empty
-                        attempts++;
-                        continue;
-                    }
-
-                    String genericDocName = getGenericDocumentName(doc);
-                    String questionText = String.format("Quale parola compare più spesso nel %s?", genericDocName);
-                    
-                    Set<String> options = new HashSet<>();
-                    options.add(correctWord);
-                    
-                    List<String> allWords = new ArrayList<>(termFreq.keySet());
-                    allWords.remove(correctWord); // Remove correct word to avoid duplication in options before shuffle
-                    Collections.shuffle(allWords);
-                    
-                    for (String word : allWords) {
-                        if (options.size() >= 4) break;
-                        options.add(word);
-                    }
-                     // If not enough unique words, this might be an issue, but DTM should have enough.
-                    if (options.size() < 4) { 
-                        // Not enough distinct words, this document might be too small or too uniform.
-                        // Try another document or fallback.
-                        System.out.println("[GameController] Not enough distinct words in " + doc + " for MFWQ. Trying another.");
-                        usedMostFrequentQuestions.remove(doc); // Allow this doc to be picked again if it was just added
-                        attempts++;
-                        continue;
-                    }
-                    
-                    List<String> optionsList = new ArrayList<>(options);
-                    Collections.shuffle(optionsList);
-                    
-                    int correctIndex = optionsList.indexOf(correctWord);
-                    if (correctIndex == -1) {
-                         System.err.println("Error: Correct answer not found in options for MFW question. Word: " + correctWord + ", Options: " + optionsList);
-                         attempts++; // Try again
-                         usedMostFrequentQuestions.remove(doc); // Allow re-pick
-                         continue;
-                    }
-                    
-                    Question question = new Question(questions.size() + 1, questionText, optionsList, correctIndex);
-                    questions.add(question);
-                    System.out.println("[GameController] Generated MFW Question for doc: " + doc + ". Key: " + doc);
-                    return; 
-                }
-            }
-            attempts++;
-        }
-        
-        System.out.println("[GameController] Could not generate unique most frequent word question after " + maxAttempts + " attempts. Adding fallback.");
-        addFallbackMostFrequentWordQuestion(questions);
-    }
-
-    private void addFallbackMostFrequentWordQuestion(List<Question> questions) {
-        String docName = !currentGameDocuments.isEmpty() ? getGenericDocumentName(currentGameDocuments.get(0)) : "Documento 1";
-        String questionText = String.format("Qual è la parola più frequente in %s (fallback)?", docName);
-        List<String> options = Arrays.asList("la", "il", "esempio", "testo");
-        Collections.shuffle(options);
-        int correctIndex = options.indexOf("esempio");
-        Question question = new Question(questions.size() + 1, questionText, options, correctIndex);
-        questions.add(question);
-        System.out.println("[GameController] Added Fallback MFW Question.");
-    }
-
-    /**
-     * Generates a fallback question when unique question generation fails.
-     * Creates a simple generic question to ensure gameplay continues.
-     */
-    private void generateFallbackQuestion(List<Question> questions) {
-        if (currentGameDocuments == null || currentGameDocuments.isEmpty()) {
-            // Ultimate fallback - create a basic question
-            List<String> options = Arrays.asList("Rosso", "Blu", "Verde", "Giallo");
-            Question question = new Question(questions.size() + 1, 
-                "Qual è il tuo colore preferito? (Domanda di fallback)", options, 0);
-            questions.add(question);
-            return;
-        }
-        
-        // Try to create a basic question from any available document
-        String doc = currentGameDocuments.get(0);
-        Map<String, Integer> termFreq = dtm.getTermsForDocument(doc);
-        
-        if (!termFreq.isEmpty()) {
-            // Get the first available word
-            String word = termFreq.keySet().iterator().next();
-            int correctFreq = termFreq.get(word);
-            String genericDocName = getGenericDocumentName(doc);
-            
-            String questionText = String.format("Quante volte compare la parola \"%s\" nel %s? (Fallback)", 
-                word, genericDocName);
-            
-            // Generate simple options
-            List<String> options = Arrays.asList(
-                String.valueOf(correctFreq),
-                String.valueOf(Math.max(0, correctFreq - 1)),
-                String.valueOf(correctFreq + 1),
-                String.valueOf(correctFreq + 2)
-            );
-            Collections.shuffle(options);
-            
-            int correctIndex = options.indexOf(String.valueOf(correctFreq));
-            Question question = new Question(questions.size() + 1, questionText, options, correctIndex);
-            questions.add(question);
-        } else {
-            // Ultimate fallback if no words available
-            List<String> options = Arrays.asList("0", "1", "2", "3");
-            Question question = new Question(questions.size() + 1, 
-                "Quante parole ci sono in questo documento? (Fallback)", options, 1);
-            questions.add(question);
-        }
-    }
     
     /**
      * Shows the final results view with score, percentage, and feedback message.

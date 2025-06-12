@@ -1,8 +1,10 @@
 package wordageddon.service;
 
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import wordageddon.model.DocumentTermMatrix;
-import wordageddon.model.GameDataContainer;
 import wordageddon.model.TextAnalysisService;
+import wordageddon.model.GameDataContainer;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -12,22 +14,26 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Service for managing documents and stopwords in the admin panel.
- * Handles loading new documents, updating stopwords, and regenerating the DTM.
+ * Unified service for document management, processing and persistence.
+ * Combines the functionality of AdminDocumentService, DocumentProcessingTask,
+ * and DocumentTermMatrixPersistenceService.
  * 
  * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0
  * @since 2025
  */
-public class AdminDocumentService {
+public class DocumentServices {
     
     private static final String GAME_DATA_FILE = "game_data.ser";
-    private static final String DOCUMENTS_DIR = "documents";
+    private static final String DOCUMENTS_DIR = "data/documents";
     
     private GameDataContainer gameData;
     private TextAnalysisService textAnalysisService;
     
-    public AdminDocumentService() {
+    /**
+     * Constructs a new DocumentServices with initialized components.
+     */
+    public DocumentServices() {
         this.textAnalysisService = new TextAnalysisService();
         createDocumentsDirectory();
         loadGameData();
@@ -49,14 +55,14 @@ public class AdminDocumentService {
                 return false;
             }
             
-            // Save document to documents directory
+            // salvo il documento nella directory dei documenti
             String fileName = path.getFileName().toString();
             if (!fileName.endsWith(".txt")) {
                 fileName += ".txt";
             }
             saveDocumentToFile(fileName, content);
             
-            // Reload all documents from directory
+            // ricarico tutti i documenti dalla directory
             loadDocumentsFromDirectory();
             
             return true;
@@ -76,15 +82,13 @@ public class AdminDocumentService {
     public boolean loadStopwordsFromFile(String filePath) {
         try {
             Path path = Paths.get(filePath);
-            List<String> lines = Files.readAllLines(path);
             
-            Set<String> stopwords = new HashSet<>();
-            for (String line : lines) {
-                String trimmed = line.trim().toLowerCase();
-                if (!trimmed.isEmpty()) {
-                    stopwords.add(trimmed);
-                }
-            }
+            // uso uno stream per leggere, filtrare e raccogliere le stopwords
+            Set<String> stopwords = Files.lines(path)
+                .map(String::trim)
+                .filter(line -> !line.isEmpty())
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
             
             if (gameData == null) {
                 gameData = new GameDataContainer();
@@ -93,10 +97,10 @@ public class AdminDocumentService {
             
             gameData.setStopwords(stopwords);
             
-            // Regenerate DTM with new stopwords
+            // rigenero la DTM con le nuove stopwords
             regenerateDocumentTermMatrix();
             
-            // Save updated data
+            // salvo i dati aggiornati
             saveGameData();
             
             return true;
@@ -115,17 +119,14 @@ public class AdminDocumentService {
      */
     public boolean updateStopwordsFromText(String stopwordsText) {
         try {
-            Set<String> stopwords = new HashSet<>();
-            
-            if (stopwordsText != null && !stopwordsText.trim().isEmpty()) {
-                String[] words = stopwordsText.split(",");
-                for (String word : words) {
-                    String trimmed = word.trim().toLowerCase();
-                    if (!trimmed.isEmpty()) {
-                        stopwords.add(trimmed);
-                    }
-                }
-            }
+            // uso uno stream per processare la stringa delle stopwords
+            Set<String> stopwords = stopwordsText != null && !stopwordsText.trim().isEmpty() ?
+                Arrays.stream(stopwordsText.split(","))
+                    .map(String::trim)
+                    .filter(word -> !word.isEmpty())
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toSet()) :
+                new HashSet<>();
             
             if (gameData == null) {
                 gameData = new GameDataContainer();
@@ -134,10 +135,10 @@ public class AdminDocumentService {
             
             gameData.setStopwords(stopwords);
             
-            // Regenerate DTM with new stopwords
+            // rigenero la DTM con le nuove stopwords
             regenerateDocumentTermMatrix();
             
-            // Save updated data
+            // salvo i dati aggiornati
             saveGameData();
             
             return true;
@@ -165,14 +166,14 @@ public class AdminDocumentService {
             return false;
         }
         
-        // Remove the physical file
+        // rimuovo il file fisico
         boolean deleted = files[index].delete();
         if (!deleted) {
             System.err.println("Failed to delete file: " + files[index].getName());
             return false;
         }
         
-        // Reload all documents from directory
+        // ricarico tutti i documenti dalla directory
         loadDocumentsFromDirectory();
         
         return true;
@@ -242,7 +243,7 @@ public class AdminDocumentService {
      */
     private void regenerateDocumentTermMatrix() {
         if (gameData == null || gameData.getDocuments() == null || gameData.getDocuments().isEmpty()) {
-            System.out.println("[AdminDocumentService] DTM regeneration skipped: gameData or documents are null/empty.");
+            System.out.println("[DocumentServices] DTM regeneration skipped: gameData or documents are null/empty.");
             return;
         }
         
@@ -250,19 +251,24 @@ public class AdminDocumentService {
         if (stopwords == null) {
             stopwords = new HashSet<>();
         }
-        // Ensure textAnalysisService is initialized
+        
+        // assicuro che il servizio di analisi del testo sia inizializzato
         if (this.textAnalysisService == null) {
             this.textAnalysisService = new TextAnalysisService();
         }
-        System.out.println("[AdminDocumentService] Regenerating DTM with " + stopwords.size() + " stopwords: " + 
-                           stopwords.stream().limit(20).collect(Collectors.joining(", ")) + (stopwords.size() > 20 ? "..." : ""));
+        
+        System.out.println("[DocumentServices] Regenerating DTM with " + stopwords.size() + " stopwords: " + 
+                          stopwords.stream().limit(20).collect(Collectors.joining(", ")) + 
+                          (stopwords.size() > 20 ? "..." : ""));
 
+        // creo la DTM usando il servizio di analisi del testo
         DocumentTermMatrix dtm = textAnalysisService.createDocumentTermMatrix(
             gameData.getDocuments(), stopwords);
         
         gameData.setDocumentTermMatrix(dtm);
         gameData.updateTimestamp();
-        System.out.println("[AdminDocumentService] DTM regenerated. Vocab size: " + (dtm != null ? dtm.getVocabularySize() : "null"));
+        System.out.println("[DocumentServices] DTM regenerated. Vocab size: " + 
+                          (dtm != null ? dtm.getVocabularySize() : "null"));
     }
 
     /**
@@ -270,10 +276,10 @@ public class AdminDocumentService {
      * To be called from the admin panel.
      */
     public void regenerateAndSaveDtm() {
-        System.out.println("[AdminDocumentService] Forcing DTM regeneration and save via admin panel request.");
-        regenerateDocumentTermMatrix(); // This line was correct
+        System.out.println("[DocumentServices] Forcing DTM regeneration and save via admin panel request.");
+        regenerateDocumentTermMatrix();
         saveGameData();
-        System.out.println("[AdminDocumentService] DTM regeneration and save complete.");
+        System.out.println("[DocumentServices] DTM regeneration and save complete.");
     }
     
     /**
@@ -283,7 +289,7 @@ public class AdminDocumentService {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(GAME_DATA_FILE))) {
             gameData = (GameDataContainer) ois.readObject();
         } catch (FileNotFoundException e) {
-            // File doesn't exist yet, start with empty data
+            // il file non esiste ancora, inizio con dati vuoti
             gameData = new GameDataContainer();
             gameData.setDocuments(new ArrayList<>());
             gameData.setStopwords(new HashSet<>());
@@ -330,17 +336,19 @@ public class AdminDocumentService {
             return;
         }
         
-        List<String> documents = new ArrayList<>();
-        for (File file : files) {
-            try {
-                String content = readFileContent(file.toPath());
-                if (!content.trim().isEmpty()) {
-                    documents.add(content);
+        // uso uno stream per processare i file di documenti
+        List<String> documents = Arrays.stream(files)
+            .map(file -> {
+                try {
+                    String content = readFileContent(file.toPath());
+                    return content.trim().isEmpty() ? null : content;
+                } catch (IOException e) {
+                    System.err.println("Error reading document " + file.getName() + ": " + e.getMessage());
+                    return null;
                 }
-            } catch (IOException e) {
-                System.err.println("Error reading document " + file.getName() + ": " + e.getMessage());
-            }
-        }
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
         
         if (gameData == null) {
             gameData = new GameDataContainer();
@@ -349,7 +357,7 @@ public class AdminDocumentService {
         
         gameData.setDocuments(documents);
         
-        // Regenerate DTM if we have documents
+        // rigenero la DTM se abbiamo documenti
         if (!documents.isEmpty()) {
             regenerateDocumentTermMatrix();
             saveGameData();
@@ -378,14 +386,9 @@ public class AdminDocumentService {
      * @throws IOException if reading fails
      */
     private String readFileContent(Path path) throws IOException {
-        StringBuilder content = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader(path.toFile()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                content.append(line).append("\n");
-            }
-        }
-        return content.toString();
+        return Files.readAllLines(path)
+            .stream()
+            .collect(Collectors.joining("\n"));
     }
     
     /**
@@ -399,5 +402,125 @@ public class AdminDocumentService {
             return "";
         }
         return String.join(", ", stopwords);
+    }
+    
+    /**
+     * Creates a task for processing a single document asynchronously.
+     * This is used to avoid blocking the UI thread during document processing.
+     * 
+     * @param dtm the Document-Term Matrix to populate
+     * @param documentFile the file to process
+     * @return a JavaFX Task for async processing
+     */
+    public Task<Void> createDocumentProcessingTask(DocumentTermMatrix dtm, File documentFile) {
+        return new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                updateMessage("Processo... " + documentFile.getName() + "...");
+                updateProgress(0, 100);
+
+                // processa il documento
+                textAnalysisService.processDocument(dtm, documentFile);
+
+                updateMessage("Completato: " + documentFile.getName());
+                updateProgress(100, 100);
+
+                return null;
+            }
+        };
+    }
+    
+    /**
+     * Creates a service for saving or loading DTM in background.
+     * 
+     * @param dtm the DTM to save, or null if loading
+     * @param filePath the file path for save/load operation
+     * @param isLoadOperation true if loading, false if saving
+     * @return a JavaFX Service that performs the operation
+     */
+    public Service<Boolean> createPersistenceService(DocumentTermMatrix dtm, String filePath, boolean isLoadOperation) {
+        return new Service<Boolean>() {
+            private DocumentTermMatrix loadedDtm;
+            
+            public DocumentTermMatrix getLoadedDtm() {
+                return loadedDtm;
+            }
+            
+            @Override
+            protected Task<Boolean> createTask() {
+                return new Task<Boolean>() {
+                    @Override
+                    protected Boolean call() throws Exception {
+                        if (!isLoadOperation) {
+                            return saveMatrix(dtm, filePath);
+                        } else {
+                            return loadMatrix(filePath);
+                        }
+                    }
+                    
+                    private Boolean saveMatrix(DocumentTermMatrix dtmToSave, String path) throws IOException {
+                        updateMessage("Salvataggio DTM...");
+                        updateProgress(0, 100);
+
+                        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(path))) {
+                            updateProgress(30, 100);
+                            
+                            oos.writeObject(dtmToSave);
+                            
+                            updateProgress(80, 100);
+                            updateMessage("Verifica integrità file...");
+                            
+                            // verifica dell'integrità del file
+                            File savedFile = new File(path);
+                            if (!savedFile.exists() || savedFile.length() == 0) {
+                                throw new IOException("Il file non è stato salvato correttamente");
+                            }
+                            
+                            updateProgress(100, 100);
+                            updateMessage("Document-Term Matrix salvata con successo!");
+                            
+                            return true;
+                        }
+                    }
+                    
+                    private Boolean loadMatrix(String path) throws IOException, ClassNotFoundException {
+                        updateMessage("Caricamento DTM...");
+                        updateProgress(0, 100);
+
+                        File file = new File(path);
+                        if (!file.exists()) {
+                            throw new FileNotFoundException("File non trovato: " + path);
+                        }
+
+                        updateProgress(20, 100);
+
+                        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path))) {
+                            updateProgress(50, 100);
+                            updateMessage("Deserializzazione dati...");
+                            
+                            Object loaded = ois.readObject();
+                            if (!(loaded instanceof DocumentTermMatrix)) {
+                                throw new IOException("Il file non contiene una Document-Term Matrix valida");
+                            }
+                            
+                            loadedDtm = (DocumentTermMatrix) loaded;
+                            
+                            updateProgress(90, 100);
+                            updateMessage("Validazione dati caricati...");
+                            
+                            // validazione di base
+                            if (loadedDtm == null) {
+                                throw new IOException("Document-Term Matrix caricata è null");
+                            }
+                            
+                            updateProgress(100, 100);
+                            updateMessage("Document-Term Matrix caricata con successo!");
+                            
+                            return true;
+                        }
+                    }
+                };
+            }
+        };
     }
 }
