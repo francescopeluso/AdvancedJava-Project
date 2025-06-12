@@ -6,29 +6,37 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Enumeration representing the different difficulty levels in the game.
- * Each difficulty affects the number of questions and documents used.
+ * Enumeration representing the different difficulty levels in the Wordageddon game.
+ * 
+ * Each difficulty level affects the number of questions generated, the complexity
+ * of document analysis, and the number of documents processed during gameplay.
+ * 
+ * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
+ * @version 1.0
+ * @since 2025
  */
 enum Difficulty {
-    /** Easy difficulty level */
+    /** Easy difficulty level - fewer questions and simpler analysis */
     FACILE, 
-    /** Medium difficulty level */
+    /** Medium difficulty level - moderate questions and analysis complexity */
     MEDIO, 
-    /** Hard difficulty level */
+    /** Hard difficulty level - more questions and complex analysis */
     DIFFICILE
 }
 
 /**
  * Core game engine that manages the Wordageddon game logic and state.
  * 
- * This class handles:
- * - Game initialization with different difficulty levels
- * - Question generation based on document term frequencies
- * - Answer validation and scoring
- * - Game state management
+ * This class serves as the central coordinator for the game mechanics, handling:
+ * - Game initialization with configurable difficulty levels
+ * - Document processing and term-frequency analysis
+ * - Question generation based on document content analysis
+ * - Answer validation and real-time scoring
+ * - Game session state management and progression tracking
  * 
- * The GameEngine works with a DocumentTermMatrix to analyze text documents
- * and generate meaningful questions about word frequencies and distributions.
+ * The GameEngine integrates with DocumentTermMatrix for text analysis,
+ * QuestionGeneratorService for creating diverse question types, and provides
+ * a complete game experience from start to finish.
  * 
  * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0

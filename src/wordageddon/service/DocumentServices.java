@@ -432,6 +432,7 @@ public class DocumentServices {
     
     /**
      * Creates a service for saving or loading DTM in background.
+     * Provides asynchronous operations for document term matrix persistence.
      * 
      * @param dtm the DTM to save, or null if loading
      * @param filePath the file path for save/load operation
@@ -440,11 +441,8 @@ public class DocumentServices {
      */
     public Service<Boolean> createPersistenceService(DocumentTermMatrix dtm, String filePath, boolean isLoadOperation) {
         return new Service<Boolean>() {
+            /** The DTM loaded from file (only used during load operations) */
             private DocumentTermMatrix loadedDtm;
-            
-            public DocumentTermMatrix getLoadedDtm() {
-                return loadedDtm;
-            }
             
             @Override
             protected Task<Boolean> createTask() {
@@ -458,6 +456,15 @@ public class DocumentServices {
                         }
                     }
                     
+                    /**
+                     * Saves the document term matrix to file.
+                     * Provides progress updates during the save operation.
+                     * 
+                     * @param dtmToSave the DTM to save
+                     * @param path the file path to save to
+                     * @return true if successful, false otherwise
+                     * @throws IOException if an I/O error occurs
+                     */
                     private Boolean saveMatrix(DocumentTermMatrix dtmToSave, String path) throws IOException {
                         updateMessage("Salvataggio DTM...");
                         updateProgress(0, 100);
@@ -465,12 +472,13 @@ public class DocumentServices {
                         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(path))) {
                             updateProgress(30, 100);
                             
+                            // serializza la DTM
                             oos.writeObject(dtmToSave);
                             
                             updateProgress(80, 100);
                             updateMessage("Verifica integrità file...");
                             
-                            // verifica dell'integrità del file
+                            // verifica dell'integrità del file salvato
                             File savedFile = new File(path);
                             if (!savedFile.exists() || savedFile.length() == 0) {
                                 throw new IOException("Il file non è stato salvato correttamente");
@@ -483,6 +491,15 @@ public class DocumentServices {
                         }
                     }
                     
+                    /**
+                     * Loads the document term matrix from file.
+                     * Provides progress updates during the load operation and validates the loaded data.
+                     * 
+                     * @param path the file path to load from
+                     * @return true if successful, false otherwise
+                     * @throws IOException if an I/O error occurs
+                     * @throws ClassNotFoundException if the file doesn't contain a valid DTM
+                     */
                     private Boolean loadMatrix(String path) throws IOException, ClassNotFoundException {
                         updateMessage("Caricamento DTM...");
                         updateProgress(0, 100);
@@ -498,6 +515,7 @@ public class DocumentServices {
                             updateProgress(50, 100);
                             updateMessage("Deserializzazione dati...");
                             
+                            // carica e verifica il tipo dell'oggetto
                             Object loaded = ois.readObject();
                             if (!(loaded instanceof DocumentTermMatrix)) {
                                 throw new IOException("Il file non contiene una Document-Term Matrix valida");
@@ -508,7 +526,7 @@ public class DocumentServices {
                             updateProgress(90, 100);
                             updateMessage("Validazione dati caricati...");
                             
-                            // validazione di base
+                            // validazione di base della DTM caricata
                             if (loadedDtm == null) {
                                 throw new IOException("Document-Term Matrix caricata è null");
                             }

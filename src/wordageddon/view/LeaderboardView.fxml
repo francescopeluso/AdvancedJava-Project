@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
-<VBox fx:id="leaderboardPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="wordageddon.controller.LeaderboardController" styleClass="app-container" stylesheets="@../../resources/styles/application.css">
+<VBox fx:id="leaderboardPane" styleClass="app-container" stylesheets="@../../resources/styles/application.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="wordageddon.controller.LeaderboardController">
    <children>
       <!-- Header with Logo -->
       <VBox spacing="10.0" styleClass="app-header">
@@ -28,8 +26,8 @@
                   </ImageView>
                   <VBox spacing="5.0">
                      <children>
-                        <Label text="Wordageddon - Statistiche e Classifica" styleClass="page-title" />
-                        <Label fx:id="userWelcomeLabel" text="Benvenuto, Utente" styleClass="welcome-text" />
+                        <Label styleClass="page-title" text="Wordageddon - Statistiche e Classifica" />
+                        <Label fx:id="userWelcomeLabel" styleClass="welcome-text" text="Benvenuto, Utente" />
                      </children>
                   </VBox>
                </children>
@@ -38,31 +36,30 @@
       </VBox>
       
       <!-- Tab Pane for Global Leaderboard and User History -->
-      <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS" styleClass="app-tab-pane">
+      <TabPane fx:id="tabPane" styleClass="app-tab-pane" VBox.vgrow="ALWAYS">
          <tabs>
             <!-- Global Leaderboard Tab -->
-            <Tab text="Classifica Globale" closable="false">
+            <Tab closable="false" text="Classifica Globale">
                <content>
                   <VBox spacing="15.0" styleClass="tab-content">
                      <children>
                         <VBox spacing="10.0" styleClass="stats-container">
                            <children>
-                              <Label text="Classifica di tutti i giocatori" styleClass="section-title" />
-                              <Label text="Visualizza i migliori giocatori ordinati per punteggio totale" styleClass="info-text" />
+                              <Label styleClass="section-title" text="Classifica di tutti i giocatori" />
+                              <Label styleClass="info-text" text="Visualizza i migliori giocatori ordinati per punteggio totale" />
                            </children>
                         </VBox>
                         
-                        <VBox spacing="10.0" VBox.vgrow="ALWAYS" styleClass="table-container">
+                        <VBox spacing="10.0" styleClass="table-container" VBox.vgrow="ALWAYS">
                            <children>
                               <HBox alignment="CENTER_LEFT" spacing="10.0">
                                  <children>
-                                    <Label text="Classifica Globale" styleClass="section-title" />
+                                    <Label styleClass="section-title" text="Classifica Globale" />
                                     <Region HBox.hgrow="ALWAYS" />
-                                    <Button fx:id="refreshGlobalButton" onAction="#handleRefreshGlobal" text="Aggiorna" styleClass="btn-secondary" />
                                  </children>
                               </HBox>
                               
-                              <TableView fx:id="globalLeaderboardTable" VBox.vgrow="ALWAYS" styleClass="app-table">
+                              <TableView fx:id="globalLeaderboardTable" styleClass="app-table" VBox.vgrow="ALWAYS">
                                  <columns>
                                     <TableColumn fx:id="rankColumn" prefWidth="60.0" text="Pos." />
                                     <TableColumn fx:id="usernameColumn" prefWidth="200.0" text="Giocatore" />
@@ -77,28 +74,27 @@
             </Tab>
             
             <!-- User Game History Tab -->
-            <Tab text="Le Tue Partite" closable="false">
+            <Tab closable="false" text="Le Tue Partite">
                <content>
                   <VBox spacing="15.0" styleClass="tab-content">
                      <children>
                         <VBox spacing="10.0" styleClass="stats-container">
                            <children>
-                              <Label text="Statistiche" styleClass="section-title" />
-                              <Label fx:id="userStatsLabel" text="Caricamento statistiche..." wrapText="true" styleClass="stats-text" />
+                              <Label styleClass="section-title" text="Statistiche" />
+                              <Label fx:id="userStatsLabel" styleClass="stats-text" text="Caricamento statistiche..." wrapText="true" />
                            </children>
                         </VBox>
                         
-                        <VBox spacing="10.0" VBox.vgrow="ALWAYS" styleClass="table-container">
+                        <VBox spacing="10.0" styleClass="table-container" VBox.vgrow="ALWAYS">
                            <children>
                               <HBox alignment="CENTER_LEFT" spacing="10.0">
                                  <children>
-                                    <Label text="Le tue partite" styleClass="section-title" />
+                                    <Label styleClass="section-title" text="Le tue partite" />
                                     <Region HBox.hgrow="ALWAYS" />
-                                    <Button fx:id="refreshButton" onAction="#handleRefresh" text="Aggiorna" styleClass="btn-secondary" />
                                  </children>
                               </HBox>
                               
-                              <TableView fx:id="gameSessionsTable" VBox.vgrow="ALWAYS" styleClass="app-table">
+                              <TableView fx:id="gameSessionsTable" styleClass="app-table" VBox.vgrow="ALWAYS">
                                  <columns>
                                     <TableColumn fx:id="difficultyColumn" prefWidth="100.0" text="Difficoltà" />
                                     <TableColumn fx:id="scoreColumn" prefWidth="80.0" text="Punteggio" />
@@ -120,7 +116,7 @@
       <!-- Footer with actions -->
       <HBox alignment="CENTER" spacing="20.0" styleClass="footer-actions">
          <children>
-            <Button fx:id="backButton" onAction="#handleBack" text="Torna alla Dashboard" styleClass="btn-primary" />
+            <Button fx:id="backButton" onAction="#handleBack" styleClass="btn-primary" text="Torna alla Dashboard" />
          </children>
       </HBox>
    </children>

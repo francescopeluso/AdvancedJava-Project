@@ -2,7 +2,6 @@ package wordageddon.service;
 
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import wordageddon.model.GameEngine;
 import wordageddon.model.TextAnalysisService;
 
 import java.io.File;

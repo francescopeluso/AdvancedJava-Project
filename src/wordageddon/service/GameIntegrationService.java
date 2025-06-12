@@ -64,20 +64,22 @@ public class GameIntegrationService {
     /**
      * Authenticates a user login using email and password.
      * 
-     * @param email the user's email
-     * @param password the password
+     * // autentica l'utente verificando email e password
+     * 
+     * @param email the user's email address for login
+     * @param password the plaintext password to verify
      * @return the User object if authentication is successful, null otherwise
      */
     public User authenticateUser(String email, String password) {
         try {
             User user = userDAO.getUserByEmail(email);
             if (user == null) {
-                return null;
+                return null; // utente non trovato
             }
             
             String storedPassword = user.getPassword();
             
-            // Verifica la password usando l'hash memorizzato
+            // verifica la password usando l'hash memorizzato nel database
             boolean isAuthenticated = PasswordUtils.verifyPassword(password, storedPassword);
             
             if (isAuthenticated) {
@@ -252,8 +254,7 @@ public class GameIntegrationService {
      * Gets the global leaderboard showing all users with their total points.
      * 
      * @return list of user leaderboard entries ordered by total points
-     */
-    public List<UserLeaderboardEntry> getGlobalLeaderboard() {
+     */    public List<UserLeaderboardEntry> getGlobalLeaderboard() {
         try {
             return gameSessionDAO.getGlobalLeaderboard();
         } catch (Exception e) {

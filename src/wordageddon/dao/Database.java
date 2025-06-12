@@ -8,12 +8,24 @@ import java.io.IOException;
 
 /**
  * Database utility class for managing SQLite database connections and initialization.
+ * 
+ * This singleton utility provides centralized database connection management,
+ * automatic schema initialization, and connection pooling for the Wordageddon application.
+ * It handles SQLite JDBC driver loading and provides methods for database setup.
+ * 
+ * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
+ * @version 1.0
+ * @since 2025
  */
 public class Database {
     
+    /** Database connection URL for SQLite database file */
     private static final String DB_URL = "jdbc:sqlite:database.db";
+    
+    /** Path to the SQL schema file containing table definitions */
     private static final String SCHEMA_FILE = "/resources/database.sql";
     
+    // carica il driver jdbc per sqlite all'avvio della classe
     static {
         try {
             Class.forName("org.sqlite.JDBC");
@@ -23,17 +35,23 @@ public class Database {
     }
     
     /**
-     * Gets a database connection.
+     * Gets a new database connection to the SQLite database.
      * 
-     * @return a database connection
-     * @throws SQLException if connection fails
+     * // crea una nuova connessione al database sqlite
+     * 
+     * @return a new database connection instance
+     * @throws SQLException if the connection cannot be established
      */
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(DB_URL);
     }
     
     /**
-     * Initializes the database by creating tables if they don't exist.
+     * Initializes the database by creating all required tables if they don't exist.
+     * 
+     * // inizializza il database creando le tabelle necessarie
+     * 
+     * @throws RuntimeException if database initialization fails
      */
     public static void initializeDatabase() {
         try (Connection conn = getConnection()) {

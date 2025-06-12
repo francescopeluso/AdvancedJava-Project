@@ -31,8 +31,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Controller for the admin panel interface.
- * Manages user administration, statistics, and administrative functions.
+ * Controller class for the administrative panel of the Wordageddon application.
+ * 
+ * Only users with administrative privileges can access this panel.
+ * The controller provides tools for system administration
+ * and monitoring of the game platform.
  * 
  * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0
@@ -114,7 +117,6 @@ public class AdminController implements Initializable {
         emailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
         isAdminColumn.setCellValueFactory(new PropertyValueFactory<>("isAdmin"));
         
-        // Set the table data
         usersTableView.setItems(usersList);
     }
     
@@ -146,16 +148,16 @@ public class AdminController implements Initializable {
      */
     private void loadStatistics() {
         try {
-            // Count total users
+            // conta gli utenti totali
             List<User> allUsers = userDAO.getAllUsers();
             totalUsersLabel.setText(String.valueOf(allUsers.size()));
             
-            // Count total admins
+            // conta gli admin presenti
             long adminCount = allUsers.stream().filter(user -> 
                 user.getIsAdmin() != null && user.getIsAdmin()).count();
             totalAdminsLabel.setText(String.valueOf(adminCount));
             
-            // Count total games - use direct SQL query instead of creating GameSession objects
+            // conta il numero totale di sessioni di gioco avvenute
             int totalGames = countTotalGameSessions();
             totalGamesLabel.setText(String.valueOf(totalGames));
             
@@ -163,7 +165,7 @@ public class AdminController implements Initializable {
             System.err.println("Errore nel caricamento delle statistiche: " + e.getMessage());
             e.printStackTrace();
             
-            // Set default values
+            // default label values
             totalUsersLabel.setText("N/A");
             totalGamesLabel.setText("N/A");
             totalAdminsLabel.setText("N/A");
@@ -176,7 +178,6 @@ public class AdminController implements Initializable {
      */
     private int countTotalGameSessions() {
         try {
-            // Use direct database query to count sessions
             return ((GameSessionDAOSQLite) gameSessionDAO).countGameSessions();
         } catch (Exception e) {
             System.err.println("Errore nel conteggio delle sessioni di gioco: " + e.getMessage());
@@ -211,10 +212,10 @@ public class AdminController implements Initializable {
         }
         
         try {
-            // Update user admin status
+            // aggiorno lo stato dell'utente
             userDAO.updateUserAdminStatus(selectedUser.getId(), true);
             
-            // Refresh data
+            // ricarico i dati aggiornati
             loadData();
             
             showAlert("Promozione completata", "L'utente " + selectedUser.getUsername() + " è stato promosso ad amministratore.");
@@ -243,7 +244,8 @@ public class AdminController implements Initializable {
             return;
         }
         
-        // Check if this is the currently logged user
+        // controllo se l'utente loggato è lo stesso dell'utente selezionato
+        // per evitare che un admin rimuova i propri privilegi
         UserSession userSession = UserSession.getInstance();
         if (userSession.isLoggedIn() && userSession.getCurrentUser().getId() == selectedUser.getId()) {
             showAlert("Operazione non consentita", "Non puoi rimuovere i privilegi di amministratore dal tuo account.");
@@ -251,10 +253,10 @@ public class AdminController implements Initializable {
         }
         
         try {
-            // Update user admin status
+            // aggiorno lo stato dell'utente
             userDAO.updateUserAdminStatus(selectedUser.getId(), false);
             
-            // Refresh data
+            // aggiorno tabella
             loadData();
             
             showAlert("Rimozione completata", "I privilegi di amministratore sono stati rimossi dall'utente " + selectedUser.getUsername() + ".");
@@ -272,14 +274,14 @@ public class AdminController implements Initializable {
     @FXML
     private void handleBack(ActionEvent event) {
         try {
-            // Load dashboard view
+            // carica la vista della dashboard
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/wordageddon/view/DashboardView.fxml"));
             Parent dashboardView = loader.load();
             
-            // Get current stage
+            // ottiene lo stage javafx
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             
-            // Set new scene
+            // imposta la nuova scena
             Scene scene = new Scene(dashboardView);
             stage.setScene(scene);
             stage.setTitle("Wordageddon - Dashboard");
@@ -317,7 +319,7 @@ public class AdminController implements Initializable {
             }
         });
         
-        // Load documents and statistics
+        // carico docs e stats
         loadDocumentData();
     }
     
@@ -326,7 +328,7 @@ public class AdminController implements Initializable {
      */
     private void loadDocumentData() {
         try {
-            // Update document statistics
+            // aggiorno stats
             Map<String, Integer> stats = documentServices.getStatistics();
             documentsCountLabel.setText(String.valueOf(stats.get("documents")));
             stopwordsCountLabel.setText(String.valueOf(stats.get("stopwords")));
@@ -343,7 +345,7 @@ public class AdminController implements Initializable {
             }
             documentsListView.setItems(documentItems);
             
-            // Load stopwords into TextArea
+            // carico le stopwords nella textarae
             String stopwordsText = documentServices.getStopwordsAsText();
             stopwordsTextArea.setText(stopwordsText);
             
@@ -414,9 +416,9 @@ public class AdminController implements Initializable {
     @FXML
     private void handleRegenerateDtm(ActionEvent event) {
         try {
-            // Force regeneration by calling the service method
-            documentServices.regenerateAndSaveDtm(); // Updated call
-            loadDocumentData(); // Then refresh UI
+            // forzo la rigeenerazione della DTM
+            documentServices.regenerateAndSaveDtm();
+            loadDocumentData(); // ricarico i dati
             showAlert("DTM Rigenerata", "La Document Term Matrix è stata rigenerata con successo.");
         } catch (Exception e) {
             showAlert("Errore", "Errore nella rigenerazione della DTM: " + e.getMessage());

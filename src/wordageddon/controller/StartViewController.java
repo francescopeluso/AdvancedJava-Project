@@ -9,19 +9,25 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.VBox;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.application.Platform;
-import java.io.IOException;
 import wordageddon.service.AuthenticationService;
 import wordageddon.service.SceneNavigationService;
 
 /**
- * Controller for the start screen managing login and registration.
+ * Controller for the start screen managing user authentication in Wordageddon.
+ * 
+ * This controller handles the initial user interface for the application,
+ * providing both login and registration functionality. It manages:
+ * - User login with username/password validation
+ * - New user registration with input validation
+ * - Form switching between login and registration modes
+ * - Authentication state management and error handling
+ * - Navigation to the main dashboard upon successful authentication
+ * 
+ * The controller uses asynchronous authentication services to prevent UI blocking
+ * and provides real-time feedback to users during the authentication process.
  * 
  * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0

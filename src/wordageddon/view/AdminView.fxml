@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.image.*?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="wordageddon.controller.AdminController" styleClass="app-container" stylesheets="@../../resources/styles/application.css">
+<VBox styleClass="app-container" stylesheets="@../../resources/styles/application.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="wordageddon.controller.AdminController">
    
    <!-- Header with Logo (Fixed at top) -->
    <HBox alignment="CENTER_LEFT" spacing="15.0" styleClass="app-header">
@@ -23,11 +31,11 @@
    </HBox>
    
    <!-- Scrollable Content Area -->
-   <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="admin-scroll-pane">
+   <ScrollPane fitToWidth="true" styleClass="admin-scroll-pane" VBox.vgrow="ALWAYS">
       <content>
          <VBox spacing="25" styleClass="admin-content">
             <padding>
-               <Insets top="10.0" right="20.0" bottom="20.0" left="20.0" />
+               <Insets bottom="20.0" left="20.0" right="20.0" top="10.0" />
             </padding>
    
    <!-- User Management Section -->
@@ -47,8 +55,7 @@
       </TableView>
       
       <!-- User Management Buttons -->
-      <HBox spacing="10" alignment="CENTER_LEFT">
-         <Button fx:id="refreshUsersButton" onAction="#handleRefreshUsers" styleClass="btn-secondary" text="Aggiorna Lista" />
+      <HBox alignment="CENTER_LEFT" spacing="10">
          <Button fx:id="promoteUserButton" onAction="#handlePromoteUser" styleClass="btn-success" text="Promuovi Admin" />
          <Button fx:id="demoteUserButton" onAction="#handleDemoteUser" styleClass="btn-danger" text="Rimuovi Admin" />
       </HBox>
@@ -58,7 +65,7 @@
    <VBox spacing="15" styleClass="stats-container">
       <Label styleClass="section-title" text="Statistiche Sistema" />
       
-      <HBox spacing="30" alignment="CENTER">
+      <HBox alignment="CENTER" spacing="30">
          <VBox spacing="5" styleClass="stat-card">
             <Label styleClass="stat-label" text="Utenti Totali:" />
             <Label fx:id="totalUsersLabel" styleClass="stat-value" text="0" />
@@ -81,7 +88,7 @@
       <Label styleClass="section-title" text="Gestione Documenti e Stopwords" />
       
       <!-- Document Statistics -->
-      <HBox spacing="30" alignment="CENTER">
+      <HBox alignment="CENTER" spacing="30">
          <VBox spacing="5" styleClass="stat-card">
             <Label styleClass="stat-label" text="Documenti:" />
             <Label fx:id="documentsCountLabel" styleClass="stat-value" text="0" />
@@ -99,7 +106,7 @@
       </HBox>
       
       <!-- Document Management Buttons -->
-      <HBox spacing="15" alignment="CENTER">
+      <HBox alignment="CENTER" spacing="15">
          <Button fx:id="loadDocumentButton" onAction="#handleLoadDocument" styleClass="btn-success" text="Carica Documento" />
          <Button fx:id="regenerateDtmButton" onAction="#handleRegenerateDtm" styleClass="btn-secondary" text="Rigenera DTM" />
       </HBox>
@@ -107,9 +114,8 @@
       <!-- Stopwords Management -->
       <VBox spacing="10">
          <Label styleClass="field-label" text="Stopwords (separate con virgole):" />
-         <TextArea fx:id="stopwordsTextArea" prefHeight="80" wrapText="true" styleClass="text-field" 
-                   promptText="Inserisci le stopwords separate da virgole (es: il, la, di, da, in, con...)"/>
-         <HBox spacing="10" alignment="CENTER_LEFT">
+         <TextArea fx:id="stopwordsTextArea" prefHeight="80" promptText="Inserisci le stopwords separate da virgole (es: il, la, di, da, in, con...)" styleClass="text-field" wrapText="true" />
+         <HBox alignment="CENTER_LEFT" spacing="10">
             <Button fx:id="updateStopwordsButton" onAction="#handleUpdateStopwords" styleClass="btn-primary" text="Aggiorna Stopwords" />
             <Label fx:id="stopwordsStatusLabel" styleClass="info-text" text="Inserisci le parole da escludere dall'analisi" />
          </HBox>
@@ -119,7 +125,7 @@
       <VBox spacing="10">
          <Label styleClass="field-label" text="Documenti Caricati:" />
          <ListView fx:id="documentsListView" prefHeight="150" styleClass="app-list" />
-         <HBox spacing="10" alignment="CENTER_LEFT">
+         <HBox alignment="CENTER_LEFT" spacing="10">
             <Button fx:id="removeDocumentButton" onAction="#handleRemoveDocument" styleClass="btn-danger" text="Rimuovi Selezionato" />
             <Label fx:id="documentStatusLabel" styleClass="info-text" text="Seleziona un documento per rimuoverlo" />
          </HBox>
@@ -127,7 +133,7 @@
    </VBox>
    
    <!-- Navigation Buttons (Fixed at bottom) -->
-   <HBox spacing="15" styleClass="footer-actions" alignment="CENTER">
+   <HBox alignment="CENTER" spacing="15" styleClass="footer-actions">
       <Button fx:id="backButton" onAction="#handleBack" styleClass="btn-primary" text="Torna alla Dashboard" />
    </HBox>
          </VBox>

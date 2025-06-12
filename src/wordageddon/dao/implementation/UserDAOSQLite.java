@@ -8,7 +8,21 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * SQLite implementation of the UserDAO interface.
+ * SQLite implementation of the UserDAO interface for user data persistence.
+ * 
+ * This class provides concrete implementation of all user-related database operations
+ * using SQLite as the underlying database. It handles:
+ * - User registration and authentication
+ * - User information retrieval and validation
+ * - Administrative user management
+ * - Database connection management and error handling
+ * 
+ * All methods use prepared statements to prevent SQL injection attacks
+ * and proper resource management with try-with-resources blocks.
+ * 
+ * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
+ * @version 1.0
+ * @since 2025
  */
 public class UserDAOSQLite implements UserDAO {
 
@@ -16,15 +30,16 @@ public class UserDAOSQLite implements UserDAO {
     public void addUser(String username, String fname, String lname, String password, String email, Boolean isAdmin) {
         String sql = "INSERT INTO users (username, password, first_name, last_name, email, is_admin) VALUES (?, ?, ?, ?, ?, ?)";
         
+        // utilizza prepared statement per sicurezza contro sql injection
         try (Connection conn = Database.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setString(1, username);
-            pstmt.setString(2, password);
+            pstmt.setString(2, password); // password già hashata dal service
             pstmt.setString(3, fname);
             pstmt.setString(4, lname);
             pstmt.setString(5, email);
-            pstmt.setBoolean(6, isAdmin != null ? isAdmin : false);
+            pstmt.setBoolean(6, isAdmin != null ? isAdmin : false); // default false se null
             
             pstmt.executeUpdate();
         } catch (SQLException e) {

@@ -28,8 +28,17 @@ import java.util.List;
 import java.text.SimpleDateFormat;
 
 /**
- * Controller for the leaderboard and game history view.
- * Displays user's game sessions and statistics.
+ * Controller for the leaderboard and game history view in Wordageddon.
+ * 
+ * This controller manages the display and interaction with:
+ * - Global user leaderboard rankings based on total points
+ * - Individual user game session history with detailed statistics
+ * - Filtering and sorting capabilities for session data
+ * - Navigation between different views and user profiles
+ * 
+ * The leaderboard provides competitive elements by showing top players
+ * and allowing users to track their progress over time. Session history
+ * helps users analyze their performance and improvement patterns.
  * 
  * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0

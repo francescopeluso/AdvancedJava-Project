@@ -2,7 +2,6 @@ package wordageddon.service;
 
 import javafx.application.Platform;
 import javafx.concurrent.Service;
-import javafx.concurrent.Worker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.animation.Timeline;

@@ -9,7 +9,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * SQLite implementation of the AnswerDAO interface.
+ * SQLite implementation of the AnswerDAO interface for answer data persistence.
+ * 
+ * This class provides concrete implementation of all answer-related database operations
+ * using SQLite as the underlying database. It handles:
+ * - Storage of user answers for each game session
+ * - Answer validation and correctness tracking
+ * - Question-answer relationship management
+ * - Answer retrieval for session analysis and review
+ * 
+ * Answers are stored with complete context including the original question,
+ * user's chosen response, correct answer, and validation status.
+ * This enables detailed game analysis and performance tracking.
+ * 
+ * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
+ * @version 1.0
+ * @since 2025
  */
 public class AnswerDAOSQLite implements AnswerDAO {
 
@@ -17,6 +32,7 @@ public class AnswerDAOSQLite implements AnswerDAO {
     public void addAnswer(int sessionId, String questionText, String chosenAnswer, String correctAnswer, boolean isCorrect) {
         String sql = "INSERT INTO answers (session_id, question_text, chosen_answer, correct_answer, is_correct) VALUES (?, ?, ?, ?, ?)";
         
+        // inserisce una nuova risposta nel database con tutti i dettagli
         try (Connection conn = Database.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
@@ -24,7 +40,7 @@ public class AnswerDAOSQLite implements AnswerDAO {
             pstmt.setString(2, questionText);
             pstmt.setString(3, chosenAnswer);
             pstmt.setString(4, correctAnswer);
-            pstmt.setInt(5, isCorrect ? 1 : 0);
+            pstmt.setInt(5, isCorrect ? 1 : 0); // converte boolean in int per sqlite
             
             pstmt.executeUpdate();
         } catch (SQLException e) {

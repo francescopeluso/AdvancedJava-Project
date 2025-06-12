@@ -28,20 +28,16 @@ import wordageddon.model.GameSession;
 import wordageddon.service.GameInitializationService;
 import wordageddon.service.DocumentLoadingService;
 import wordageddon.service.GameIntegrationService;
-import wordageddon.service.UserSession;
 import wordageddon.service.DocumentServices;
 import wordageddon.service.QuestionGeneratorService;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Controller class for managing the Wordageddon game flow.
@@ -179,6 +175,9 @@ public class GameController {
         
         // Inizializza il gioco in modo asincrono
         initializeGameAsync();
+        
+        // Mostra la schermata di selezione difficoltà
+        showDifficultyView();
     }
 
     /**
@@ -229,6 +228,8 @@ public class GameController {
         if (adminDtm != null && adminDocuments != null && !adminDocuments.isEmpty()) {
             // Usa direttamente la DTM e i documenti dall'admin service
             dtm = adminDtm;
+            
+            // Effettua una copia profonda della lista di documenti per poter manipolarla
             documentContents = new ArrayList<>(adminDocuments);
             
             // Crea i nomi dei documenti generici
@@ -654,6 +655,7 @@ public class GameController {
     /**
      * Prepares and displays the appropriate number of documents based on selected difficulty.
      * Adjusts document container layout and visibility dynamically.
+     * Selects documents randomly for each game session.
      * 
      * Document visibility by difficulty:
      * - Easy: 1 document
@@ -698,23 +700,52 @@ public class GameController {
         HBox.setHgrow(doc2Container, Priority.ALWAYS);
         HBox.setHgrow(doc3Container, Priority.ALWAYS);
         
+        // Creiamo una copia mescolata dei documenti disponibili per garantire selezione casuale
+        List<String> shuffledDocumentContents = new ArrayList<>(documentContents);
+        List<String> shuffledVisibleDocuments = new ArrayList<>(visibleDocuments);
+        
+        // Assicurati che gli indici corrispondano
+        if (shuffledDocumentContents.size() == shuffledVisibleDocuments.size()) {
+            // Crea una lista di indici da mescolare
+            List<Integer> indices = new ArrayList<>();
+            for (int i = 0; i < shuffledDocumentContents.size(); i++) {
+                indices.add(i);
+            }
+            Collections.shuffle(indices);
+            
+            // Usa gli indici mescolati per creare le liste randomizzate
+            List<String> randomizedContents = new ArrayList<>();
+            List<String> randomizedNames = new ArrayList<>();
+            
+            for (int index : indices) {
+                randomizedContents.add(shuffledDocumentContents.get(index));
+                randomizedNames.add(shuffledVisibleDocuments.get(index));
+            }
+            
+            shuffledDocumentContents = randomizedContents;
+            shuffledVisibleDocuments = randomizedNames;
+        } else {
+            // Se le dimensioni non corrispondono, mescola solo i contenuti
+            Collections.shuffle(shuffledDocumentContents);
+        }
+        
         // Mostra e carica solo il numero di documenti necessari
-        for (int i = 0; i < numberOfDocuments && i < documentContents.size(); i++) {
+        for (int i = 0; i < numberOfDocuments && i < shuffledDocumentContents.size(); i++) {
             switch (i) {
                 case 0:
-                    doc1.setText(documentContents.get(0));
+                    doc1.setText(shuffledDocumentContents.get(0));
                     doc1.setVisible(true);
                     doc1Container.setVisible(true);
                     doc1Container.setManaged(true);
                     break;
                 case 1:
-                    doc2.setText(documentContents.get(1));
+                    doc2.setText(shuffledDocumentContents.get(1));
                     doc2.setVisible(true);
                     doc2Container.setVisible(true);
                     doc2Container.setManaged(true);
                     break;
                 case 2:
-                    doc3.setText(documentContents.get(2));
+                    doc3.setText(shuffledDocumentContents.get(2));
                     doc3.setVisible(true);
                     doc3Container.setVisible(true);
                     doc3Container.setManaged(true);
@@ -724,8 +755,8 @@ public class GameController {
         
         // Aggiorna i documenti per la partita corrente
         currentGameDocuments = new ArrayList<>();
-        for (int i = 0; i < numberOfDocuments && i < visibleDocuments.size(); i++) {
-            currentGameDocuments.add(visibleDocuments.get(i));
+        for (int i = 0; i < numberOfDocuments && i < shuffledVisibleDocuments.size(); i++) {
+            currentGameDocuments.add(shuffledVisibleDocuments.get(i));
         }
         
         // Aggiorna il GameEngine con i documenti correnti
@@ -846,7 +877,6 @@ public class GameController {
      * The number of questions generated depends on the selected difficulty level.
      * Questions are not repeated within the same session.
      */
-    // Metodo per generare tutte le domande
     private void generateAllQuestions(String difficulty) {
         // Aggiorna la configurazione del generatore di domande
         if (questionGenerator == null) {
@@ -883,22 +913,12 @@ public class GameController {
     
     /**
      * Shows the final results view with score, percentage, and feedback message.
-     * Calculates the final score percentage and provides appropriate feedback:
+     * Calculates the final score percentage and provides appropriate feedback based on performance:
      * - 80%+ : "Eccellente! Hai una ottima comprensione dei testi!"
      * - 60-79%: "Buon lavoro! Puoi ancora migliorare."
      * - <60%  : "Continua a praticare per migliorare le tue capacità di analisi testuale."
-     * Also automatically populates the question review table.
+     * Also automatically populates the question review table and saves the session to database.
      */
-    
-    /**
-     * Shows the final results view with score, percentage, and feedback message.
-     * Calculates the final score percentage and provides appropriate feedback:
-     * - 80%+ : "Eccellente! Hai una ottima comprensione dei testi!"
-     * - 60-79%: "Buon lavoro! Puoi ancora migliorare."
-     * - <60%  : "Continua a praticare per migliorare le tue capacità di analisi testuale."
-     * Also automatically populates the question review table.
-     */
-    // Metodo per mostrare i risultati finali
     private void showResultsView() {
         difficultyPane.setVisible(false);
         gameplayPane.setVisible(false);
@@ -906,8 +926,7 @@ public class GameController {
         resultsPane.setVisible(true);
         
         if (currentGameSession != null) {
-            // Calcola il punteggio finale e la percentuale
-            
+            // calcola il punteggio finale e la percentuale
             double finalScore = currentGameSession.getTotalScore();
             int totalQuestions = currentGameSession.getQuestions().size();
             int correctCount = currentGameSession.getCorrectAnswersCount();
@@ -916,6 +935,7 @@ public class GameController {
             scoreLabel.setText(String.format("Punteggio: %.2f/%.0f (%.1f%%)", 
                 finalScore, (double)totalQuestions, percentage));
             
+            // determina il messaggio di feedback basato sulla percentuale
             String message;
             if (percentage >= 80) {
                 message = "Eccellente! Hai una ottima comprensione dei testi!";
@@ -928,10 +948,10 @@ public class GameController {
             finalMessageLabel.setText(message);
             detailedScoreLabel.setText(String.format("Risposte corrette: %d su %d", correctCount, totalQuestions));
             
-            // Popola la tabella di revisione delle domande
+            // popola la tabella di revisione delle domande
             populateQuestionReviewTable();
             
-            // Salva la sessione di gioco nel database
+            // salva la sessione di gioco nel database
             if (currentGameSession.isCompleted()) {
                 try {
                     int sessionId = gameIntegrationService.saveCurrentUserGameSession(currentGameSession);

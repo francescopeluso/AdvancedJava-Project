@@ -12,7 +12,23 @@ import java.util.List;
 import java.util.Date;
 
 /**
- * SQLite implementation of the GameSessionDAO interface.
+ * SQLite implementation of the GameSessionDAO interface for game session data persistence.
+ * 
+ * This class provides concrete implementation of all game session-related database operations
+ * using SQLite as the underlying database. It handles:
+ * - Game session creation and storage
+ * - Session statistics and scoring data retrieval
+ * - Leaderboard generation and user ranking
+ * - Game history tracking and analysis
+ * - Associated answer and question data management
+ * 
+ * The implementation supports complex queries for leaderboard generation,
+ * user statistics calculation, and comprehensive game session reporting.
+ * All database operations use prepared statements for security and performance.
+ * 
+ * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
+ * @version 1.0
+ * @since 2025
  */
 public class GameSessionDAOSQLite implements GameSessionDAO {
 
