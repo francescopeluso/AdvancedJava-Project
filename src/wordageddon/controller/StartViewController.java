@@ -142,8 +142,6 @@ public class StartViewController implements Initializable {
             AuthenticationService.AuthenticationResult result = authenticationService.getValue();
             
             if (result.isSuccess()) {
-                System.out.println("Login con: " + email + " completato con successo!");
-                
                 // Avvia la navigazione alla dashboard
                 navigateToDashboard();
             } else {
@@ -279,9 +277,6 @@ public class StartViewController implements Initializable {
             
             Platform.runLater(() -> {
                 if (result.isSuccess()) {
-                    System.out.println("Registrazione: " + nome + " " + cognome + 
-                        ", Username: " + username + ", Email: " + email + " completata con successo!");
-                    
                     // Mostra un messaggio di successo e torna al login
                     registerErrorLabel.setText("Registrazione completata con successo! Effettua il login.");
                     registerErrorLabel.setStyle("-fx-text-fill: green;");

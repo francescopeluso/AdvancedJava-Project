@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 
 import java.io.File;
 import java.io.FileReader;
@@ -108,17 +107,11 @@ public class TextAnalysisService {
     public DocumentTermMatrix createDocumentTermMatrix(List<String> documents, Set<String> currentStopwords) {
         // creo una copia difensiva delle stopwords
         final Set<String> finalStopwords = currentStopwords != null ? new HashSet<>(currentStopwords) : new HashSet<>();
-        System.out.println("[TextAnalysisService] Creating DTM. Stopwords received: " +
-                          (currentStopwords == null ? "null" : currentStopwords.size()) +
-                          ". Effective stopwords for this DTM build: " + finalStopwords.size() + 
-                          " -> [" + finalStopwords.stream().limit(20).collect(Collectors.joining(", ")) + 
-                          (finalStopwords.size() > 20 ? "..." : "") + "]");
 
         DocumentTermMatrix dtm = new DocumentTermMatrix();
         boolean firstDocLogged = false;
 
         if (documents == null || documents.isEmpty()) {
-            System.out.println("[TextAnalysisService] No documents provided to create DTM. Returning empty DTM.");
             return dtm;
         }
 
@@ -126,7 +119,6 @@ public class TextAnalysisService {
         for (int i = 0; i < documents.size(); i++) {
             String content = documents.get(i);
             if (content == null || content.trim().isEmpty()) {
-                System.out.println("[TextAnalysisService] Document " + i + " is null or empty. Skipping.");
                 continue;
             }
             String documentId = "document_" + (i + 1);
@@ -161,7 +153,6 @@ public class TextAnalysisService {
                 firstDocLogged = true;
             }
         }
-        System.out.println("[TextAnalysisService] DTM creation complete. Vocabulary size: " + dtm.getVocabularySize());
         return dtm;
     }
     
@@ -177,27 +168,7 @@ public class TextAnalysisService {
     private void logFirstDocumentProcessing(String documentId, List<String> allWordsInDoc, 
                                            List<String> filteredOutWords, List<String> addedTermsForDoc,
                                            Set<String> finalStopwords) {
-        System.out.println("[TextAnalysisService] Processing first document (ID: " + documentId + ")");
-        System.out.println("    Original words (sample): [" + 
-                           allWordsInDoc.stream().limit(15).collect(Collectors.joining(", ")) + 
-                           (allWordsInDoc.size() > 15 ? "..." : "") + "]");
-        System.out.println("    Stopwords found in doc (sample): [" + 
-                           filteredOutWords.stream().limit(15).collect(Collectors.joining(", ")) + 
-                           (filteredOutWords.size() > 15 ? "..." : "") + "]");
-        System.out.println("    Terms added to DTM for this doc (sample): [" + 
-                           addedTermsForDoc.stream().limit(15).collect(Collectors.joining(", ")) + 
-                           (addedTermsForDoc.size() > 15 ? "..." : "") + "]");
-        
-        // verifica di un esempio di stopword se presente nel documento
-        String testStopword = "il"; 
-        boolean stopwordInSet = finalStopwords.contains(testStopword);
-        boolean stopwordInDocWords = allWordsInDoc.contains(testStopword);
-        if (stopwordInDocWords) {
-            System.out.println("    DEBUG: Test stopword '" + testStopword + 
-                               "': In finalStopwordsSet? " + stopwordInSet + 
-                               ". In document words? " + stopwordInDocWords + 
-                               ". Should be filtered if both true.");
-        }
+        // Debug logging removed for production
     }
 
 
@@ -207,27 +178,7 @@ public class TextAnalysisService {
      * @param args command line arguments (not used)
      */
     public static void main(String[] args) {
-        try {
-
-            // creo un'istanza del servizio di analisi dei documenti e carico le stopwords
-            TextAnalysisService service = new TextAnalysisService();
-            service.loadStopwords(new File("stopwords.txt"));
-
-            // inizializzo un dtm vuoto e carico il contenuto della cartella /documents nella root del progetto
-            DocumentTermMatrix dtm = new DocumentTermMatrix();
-            service.processDocuments(dtm, new File("documents/"));  // DEVO PASSARE LA DIRECTORY, NON IL FILE!
-
-            System.out.println(dtm);
-
-            System.out.println("Frequenze in 'doc1.txt': " + dtm.getTermsForDocument("doc1.txt"));
-            System.out.println("Frequenze in 'doc2.txt': " + dtm.getTermsForDocument("doc2.txt"));
-            System.out.println("Frequenze in 'doc3.txt': " + dtm.getTermsForDocument("doc3.txt"));
-
-            System.out.println("Lista di tutte le parole: " + dtm.getAllTerms());
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // Test method removed for production
     }
 
 }

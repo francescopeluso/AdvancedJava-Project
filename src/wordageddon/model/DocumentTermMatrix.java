@@ -160,23 +160,16 @@ public class DocumentTermMatrix implements Serializable {
             new String[]{"doc2.txt", "gatto"}
         ).forEach(data -> dtm.addTerm(data[0], data[1]));
         
-        System.out.println("--- Document Term Matrix - Test 1 ---");
-        System.out.println("Frequenze in doc1.txt: " + dtm.getTermsForDocument("doc1.txt"));
-        System.out.println("Frequenza di 'gatto' in doc2.txt: " + dtm.getFrequency("doc2.txt", "gatto"));
         
         // test di serializzazione
         try {
             File exportFile = new File("demo_export");
             dtm.saveToFile(exportFile);
             
-            System.out.println("File salvato in: " + exportFile.getAbsolutePath());
             
             // test di deserializzazione
             DocumentTermMatrix dtm2 = DocumentTermMatrix.loadFromFile(exportFile);
             
-            System.out.println("\n--- Document Term Matrix - Test 2 ---");
-            System.out.println("Frequenze in doc2.txt: " + dtm2.getTermsForDocument("doc2.txt"));
-            System.out.println("Frequenza di 'cane' in doc1.txt: " + dtm2.getFrequency("doc1.txt", "cane"));
         } catch (Exception ex) {
             System.err.println("Errore di I/O: " + ex.getMessage());
         }

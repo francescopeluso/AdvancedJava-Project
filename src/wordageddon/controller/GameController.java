@@ -194,7 +194,6 @@ public class GameController {
             
             if (result.isSuccess()) {
                 textAnalysisService = result.getTextAnalysisService();
-                System.out.println("Inizializzazione del gioco completata con successo!");
                 
                 // Ora inizializza il caricamento dei documenti
                 initializeDocumentLoadingAsync();
@@ -244,13 +243,9 @@ public class GameController {
             // Inizializza il generatore di domande
             questionGenerator = new QuestionGeneratorService(dtm, visibleDocuments);
             
-            System.out.println("Caricamento documenti completato con successo dalla DTM dell'admin!");
-            System.out.println("Documenti caricati: " + visibleDocuments.size());
-            System.out.println("Dimensione vocabolario DTM: " + dtm.getVocabularySize());
             
         } else {
             // Fallback al sistema precedente se l'admin service non ha dati
-            System.out.println("Nessuna DTM trovata nell'admin service, uso il sistema di fallback...");
             initializeDocumentLoadingAsyncFallback();
         }
     }
@@ -278,8 +273,6 @@ public class GameController {
             // Inizializza il generatore di domande
             questionGenerator = new QuestionGeneratorService(dtm, visibleDocuments);
             
-            System.out.println("Caricamento documenti completato con successo!");
-            System.out.println("Documenti caricati: " + visibleDocuments.size());
         });
         
         // Gestisce gli errori durante il caricamento
@@ -429,7 +422,6 @@ public class GameController {
             stage.setScene(dashboardScene);
             stage.setTitle("Wordageddon - Dashboard");
             
-            System.out.println("Tornato alla dashboard");
             
         } catch (IOException e) {
             System.err.println("Errore nel caricamento della dashboard: " + e.getMessage());
@@ -767,8 +759,6 @@ public class GameController {
             questionGenerator = new QuestionGeneratorService(dtm, currentGameDocuments);
         }
         
-        System.out.println("Documenti preparati per difficoltà: " + numberOfDocuments + " documenti visibili");
-        System.out.println("Documenti correnti: " + currentGameDocuments);
     }
     
     /**
@@ -891,7 +881,6 @@ public class GameController {
         List<Question> questions = new ArrayList<>();
         questionGenerator.resetTracking();
         
-        System.out.println("Generazione di " + totalQuestions + " domande per la difficoltà: " + difficulty);
         
         // Generazione domande di varie tipologie
         for (int i = 0; i < totalQuestions; i++) {
@@ -899,13 +888,11 @@ public class GameController {
             Question question = questionGenerator.generateRandomQuestion(i + 1);
             if (question != null) {
                 questions.add(question);
-                System.out.println("Generated question " + (i + 1) + ": " + question.getQuestionText());
             } else {
                 System.err.println("Failed to generate question " + (i + 1));
             }
         }
         
-        System.out.println("Generate " + questions.size() + " domande per la difficoltà: " + difficulty);
         
         // Crea una nuova sessione di gioco con le domande generate
         currentGameSession = new GameSession(difficulty, questions);
@@ -956,7 +943,6 @@ public class GameController {
                 try {
                     int sessionId = gameIntegrationService.saveCurrentUserGameSession(currentGameSession);
                     if (sessionId > 0) {
-                        System.out.println("Sessione di gioco salvata con ID: " + sessionId);
                     } else {
                         System.err.println("Errore nel salvare la sessione di gioco");
                     }

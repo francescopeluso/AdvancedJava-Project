@@ -91,7 +91,6 @@ public class DashboardController implements Initializable {
                 if (result.isSuccess()) {
                     sceneNavigationService.applySceneToStage(result);
                     stage.show();
-                    System.out.println("Classifica caricata!");
                 } else {
                     System.err.println("Errore nel caricamento della classifica: " + result.getErrorMessage());
                 }
@@ -149,7 +148,6 @@ public class DashboardController implements Initializable {
                 if (result.isSuccess()) {
                     sceneNavigationService.applySceneToStage(result);
                     stage.show();
-                    System.out.println("Partita avviata!");
                 } else {
                     System.err.println("Errore nel caricamento della vista del gioco: " + result.getErrorMessage());
                 }
@@ -188,7 +186,6 @@ public class DashboardController implements Initializable {
         
         User currentUser = userSession.getCurrentUser();
         if (currentUser.getIsAdmin() == null || !currentUser.getIsAdmin()) {
-            System.out.println("Accesso negato: l'utente non è un amministratore");
             // TODO: mostra messaggio di errore nella UI
             return;
         }
@@ -209,7 +206,6 @@ public class DashboardController implements Initializable {
                 if (result.isSuccess()) {
                     sceneNavigationService.applySceneToStage(result);
                     stage.show();
-                    System.out.println("Pannello amministratore caricato!");
                 } else {
                     System.err.println("Errore nel caricamento del pannello admin: " + result.getErrorMessage());
                 }
@@ -241,7 +237,6 @@ public class DashboardController implements Initializable {
         UserSession userSession = UserSession.getInstance();
         userSession.logout();
         
-        System.out.println("Logout effettuato con successo");
         
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         
@@ -259,7 +254,6 @@ public class DashboardController implements Initializable {
                 if (result.isSuccess()) {
                     sceneNavigationService.applySceneToStage(result);
                     stage.show();
-                    System.out.println("Reindirizzamento al login completato!");
                 } else {
                     System.err.println("Errore nel reindirizzamento al login: " + result.getErrorMessage());
                 }

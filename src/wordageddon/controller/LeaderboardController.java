@@ -252,7 +252,6 @@ public class LeaderboardController implements Initializable {
             stage.setTitle("Wordageddon - Dashboard");
             stage.show();
             
-            System.out.println("Tornato alla dashboard");
         } catch (Exception e) {
             System.err.println("Errore nel tornare alla dashboard: " + e.getMessage());
             e.printStackTrace();

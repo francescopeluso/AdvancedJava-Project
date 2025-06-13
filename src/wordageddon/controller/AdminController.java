@@ -136,7 +136,6 @@ public class AdminController implements Initializable {
             List<User> users = userDAO.getAllUsers();
             usersList.clear();
             usersList.addAll(users);
-            System.out.println("Caricati " + users.size() + " utenti");
         } catch (Exception e) {
             System.err.println("Errore nel caricamento degli utenti: " + e.getMessage());
             e.printStackTrace();
@@ -191,7 +190,6 @@ public class AdminController implements Initializable {
     @FXML
     private void handleRefreshUsers(ActionEvent event) {
         loadData();
-        System.out.println("Dati aggiornati");
     }
     
     /**
@@ -219,7 +217,6 @@ public class AdminController implements Initializable {
             loadData();
             
             showAlert("Promozione completata", "L'utente " + selectedUser.getUsername() + " è stato promosso ad amministratore.");
-            System.out.println("Utente " + selectedUser.getUsername() + " promosso ad admin");
             
         } catch (Exception e) {
             System.err.println("Errore nella promozione dell'utente: " + e.getMessage());
@@ -260,7 +257,6 @@ public class AdminController implements Initializable {
             loadData();
             
             showAlert("Rimozione completata", "I privilegi di amministratore sono stati rimossi dall'utente " + selectedUser.getUsername() + ".");
-            System.out.println("Privilegi admin rimossi dall'utente " + selectedUser.getUsername());
             
         } catch (Exception e) {
             System.err.println("Errore nella rimozione dei privilegi admin: " + e.getMessage());
@@ -287,7 +283,6 @@ public class AdminController implements Initializable {
             stage.setTitle("Wordageddon - Dashboard");
             stage.show();
             
-            System.out.println("Tornato alla dashboard");
         } catch (Exception e) {
             System.err.println("Errore nel tornare alla dashboard: " + e.getMessage());
             e.printStackTrace();

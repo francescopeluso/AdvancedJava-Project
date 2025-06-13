@@ -243,7 +243,6 @@ public class DocumentServices {
      */
     private void regenerateDocumentTermMatrix() {
         if (gameData == null || gameData.getDocuments() == null || gameData.getDocuments().isEmpty()) {
-            System.out.println("[DocumentServices] DTM regeneration skipped: gameData or documents are null/empty.");
             return;
         }
         
@@ -256,10 +255,6 @@ public class DocumentServices {
         if (this.textAnalysisService == null) {
             this.textAnalysisService = new TextAnalysisService();
         }
-        
-        System.out.println("[DocumentServices] Regenerating DTM with " + stopwords.size() + " stopwords: " + 
-                          stopwords.stream().limit(20).collect(Collectors.joining(", ")) + 
-                          (stopwords.size() > 20 ? "..." : ""));
 
         // creo la DTM usando il servizio di analisi del testo
         DocumentTermMatrix dtm = textAnalysisService.createDocumentTermMatrix(
@@ -267,8 +262,6 @@ public class DocumentServices {
         
         gameData.setDocumentTermMatrix(dtm);
         gameData.updateTimestamp();
-        System.out.println("[DocumentServices] DTM regenerated. Vocab size: " + 
-                          (dtm != null ? dtm.getVocabularySize() : "null"));
     }
 
     /**
@@ -276,10 +269,8 @@ public class DocumentServices {
      * To be called from the admin panel.
      */
     public void regenerateAndSaveDtm() {
-        System.out.println("[DocumentServices] Forcing DTM regeneration and save via admin panel request.");
         regenerateDocumentTermMatrix();
         saveGameData();
-        System.out.println("[DocumentServices] DTM regeneration and save complete.");
     }
     
     /**
