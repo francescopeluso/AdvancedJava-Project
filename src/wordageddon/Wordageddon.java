@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import wordageddon.dao.Database;
 
 /**
  * Main application class for the Wordageddon text analysis game.
@@ -48,11 +49,20 @@ public class Wordageddon extends Application {
 
     /**
      * Main entry point for the application.
-     * Launches the JavaFX application.
+     * Initializes the database and launches the JavaFX application.
      * 
      * @param args the command line arguments (not used)
      */
     public static void main(String[] args) {
+        // Initialize database before launching the application
+        try {
+            Database.initializeDatabase();
+            System.out.println("Database initialized successfully.");
+        } catch (RuntimeException e) {
+            System.err.println("Failed to initialize database: " + e.getMessage());
+            System.exit(1);
+        }
+        
         launch(args);
     }
 }

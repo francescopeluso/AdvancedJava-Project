@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.InputStream;
 import java.io.IOException;
+import wordageddon.util.PasswordUtils;
 
 /**
  * Database utility class for managing SQLite database connections and initialization.
@@ -48,14 +49,21 @@ public class Database {
     
     /**
      * Initializes the database by creating all required tables if they don't exist.
-     * 
-     * // inizializza il database creando le tabelle necessarie
+     * Also inserts default users if the database is being created for the first time.
      * 
      * @throws RuntimeException if database initialization fails
      */
     public static void initializeDatabase() {
         try (Connection conn = getConnection()) {
-            createTables(conn);
+            // Check if database tables exist
+            boolean tablesExist = doTablesExist(conn);
+            
+            // Create tables if they don't exist
+            if (!tablesExist) {
+                createTables(conn);
+                // Insert default users only when creating tables for the first time
+                insertDefaultUsers(conn);
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to initialize database: " + e.getMessage(), e);
         }
@@ -92,6 +100,59 @@ public class Database {
             }
         } catch (IOException e) {
             throw new SQLException("Failed to read schema file: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Checks if the required database tables exist.
+     * 
+     * @param conn the database connection
+     * @return true if tables exist, false otherwise
+     * @throws SQLException if checking fails
+     */
+    private static boolean doTablesExist(Connection conn) throws SQLException {
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")) {
+            
+            return rs.next(); // Returns true if users table exists
+        } catch (SQLException e) {
+            // If we can't check, assume tables don't exist
+            return false;
+        }
+    }
+    
+    /**
+     * Inserts the default users into the database.
+     * Creates admin@wordageddon.it (admin123) and demo@wordageddon.it (demo123).
+     * 
+     * @param conn the database connection
+     * @throws SQLException if insertion fails
+     */
+    private static void insertDefaultUsers(Connection conn) throws SQLException {
+        String insertSQL = "INSERT INTO users (username, password, first_name, last_name, email, is_admin) VALUES (?, ?, ?, ?, ?, ?)";
+        
+        try (PreparedStatement pstmt = conn.prepareStatement(insertSQL)) {
+            // Insert admin user
+            pstmt.setString(1, "admin");
+            pstmt.setString(2, PasswordUtils.hashPassword("admin123"));
+            pstmt.setString(3, "Admin");
+            pstmt.setString(4, "User");
+            pstmt.setString(5, "admin@wordageddon.it");
+            pstmt.setInt(6, 1); // is_admin = true
+            pstmt.executeUpdate();
+            
+            // Insert demo user
+            pstmt.setString(1, "demo");
+            pstmt.setString(2, PasswordUtils.hashPassword("demo123"));
+            pstmt.setString(3, "Demo");
+            pstmt.setString(4, "User");
+            pstmt.setString(5, "demo@wordageddon.it");
+            pstmt.setInt(6, 0); // is_admin = false
+            pstmt.executeUpdate();
+            
+            System.out.println("Default users created successfully:");
+            System.out.println("- admin@wordageddon.it (password: admin123)");
+            System.out.println("- demo@wordageddon.it (password: demo123)");
         }
     }
     

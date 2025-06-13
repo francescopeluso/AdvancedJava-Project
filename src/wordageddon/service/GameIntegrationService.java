@@ -4,7 +4,6 @@ import wordageddon.dao.DAOFactory;
 import wordageddon.dao.UserDAO;
 import wordageddon.dao.GameSessionDAO;
 import wordageddon.dao.AnswerDAO;
-import wordageddon.dao.Database;
 import wordageddon.model.GameSession;
 import wordageddon.model.GameSessionSummary;
 import wordageddon.model.UserLeaderboardEntry;
@@ -23,9 +22,6 @@ public class GameIntegrationService {
     private final AnswerDAO answerDAO;
     
     public GameIntegrationService() {
-        // inizializza il database alla creazione del servizio
-        Database.initializeDatabase();
-        
         this.userDAO = DAOFactory.getUserDAO();
         this.gameSessionDAO = DAOFactory.getGameSessionDAO();
         this.answerDAO = DAOFactory.getAnswerDAO();
