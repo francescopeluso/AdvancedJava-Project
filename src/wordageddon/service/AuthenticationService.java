@@ -2,6 +2,10 @@ package wordageddon.service;
 
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import wordageddon.dao.DAOFactory;
+import wordageddon.dao.UserDAO;
+import wordageddon.model.User;
+import wordageddon.util.PasswordUtils;
 
 /**
  * JavaFX Service for handling user authentication in the background.
@@ -13,7 +17,7 @@ import javafx.concurrent.Task;
  */
 public class AuthenticationService extends Service<AuthenticationService.AuthenticationResult> {
 
-    private final GameIntegrationService gameIntegrationService;
+    private final UserDAO userDAO;
 
     public enum AuthenticationType {
         LOGIN, REGISTRATION
@@ -88,7 +92,7 @@ public class AuthenticationService extends Service<AuthenticationService.Authent
     public AuthenticationService(AuthenticationType authenticationType, UserCredentials credentials) {
         this.authenticationType = authenticationType;
         this.credentials = credentials;
-        this.gameIntegrationService = new GameIntegrationService();
+        this.userDAO = DAOFactory.getUserDAO();
     }
 
     @Override
@@ -114,10 +118,7 @@ public class AuthenticationService extends Service<AuthenticationService.Authent
                 updateMessage("Accesso in corso...");
                 
                 // autentica l'utente con il database
-                wordageddon.model.User user = gameIntegrationService.authenticateUser(
-                    credentials.getEmail(), 
-                    credentials.getPassword()
-                );
+                User user = authenticateUser(credentials.getEmail(), credentials.getPassword());
                 
                 boolean loginSuccess = user != null;
 
@@ -152,7 +153,7 @@ public class AuthenticationService extends Service<AuthenticationService.Authent
                 updateProgress(50, 100);
 
                 // controlla se l'username è disponibile
-                if (!gameIntegrationService.isUsernameAvailable(credentials.getUsername())) {
+                if (!isUsernameAvailable(credentials.getUsername())) {
                     return new AuthenticationResult(false, "Username già in uso", null, AuthenticationType.REGISTRATION);
                 }
                 
@@ -162,7 +163,7 @@ public class AuthenticationService extends Service<AuthenticationService.Authent
                 updateProgress(75, 100);
 
                 // Create user in database
-                boolean userCreated = gameIntegrationService.registerUser(
+                boolean userCreated = registerUser(
                     credentials.getUsername(),
                     credentials.getFirstName(),
                     credentials.getLastName(),
@@ -188,5 +189,88 @@ public class AuthenticationService extends Service<AuthenticationService.Authent
                 return email != null && email.matches(emailRegex);
             }
         };
+    }
+    
+    /**
+     * Authenticates a user login using email and password.
+     * 
+     * @param email the user's email address for login
+     * @param password the plaintext password to verify
+     * @return the User object if authentication is successful, null otherwise
+     */
+    private User authenticateUser(String email, String password) {
+        try {
+            User user = userDAO.getUserByEmail(email);
+            if (user == null) {
+                return null; // utente non trovato
+            }
+            
+            String storedPassword = user.getPassword();
+            
+            // verifica la password usando l'hash memorizzato nel database
+            boolean isAuthenticated = PasswordUtils.verifyPassword(password, storedPassword);
+            
+            if (isAuthenticated) {
+                // Imposta la sessione utente
+                UserSession.getInstance().setCurrentUser(user);
+                return user;
+            }
+            
+            return null;
+        } catch (Exception e) {
+            System.err.println("Error authenticating user: " + e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Registers a new user.
+     * 
+     * @param username the username
+     * @param firstName the first name
+     * @param lastName the last name
+     * @param password the password
+     * @param email the email
+     * @param isAdmin whether the user is an admin
+     * @return true if registration is successful, false if user already exists
+     */
+    private boolean registerUser(String username, String firstName, String lastName, String password, String email, boolean isAdmin) {
+        try {
+            if (userDAO.userExists(username)) {
+                return false;
+            }
+            
+            // Crea un hash sicuro della password prima di memorizzarla
+            String hashedPassword = PasswordUtils.hashPassword(password);
+            
+            userDAO.addUser(username, firstName, lastName, hashedPassword, email, isAdmin);
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error registering user: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Checks if a username is available.
+     * 
+     * @param username the username to check
+     * @return true if available, false if already taken
+     */
+    private boolean isUsernameAvailable(String username) {
+        try {
+            return !userDAO.userExists(username);
+        } catch (Exception e) {
+            System.err.println("Error checking username availability: " + e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "AuthenticationService{" +
+                "authenticationType=" + authenticationType +
+                ", credentials=" + credentials +
+                '}';
     }
 }

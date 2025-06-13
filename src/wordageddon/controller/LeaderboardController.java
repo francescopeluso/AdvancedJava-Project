@@ -157,7 +157,7 @@ public class LeaderboardController implements Initializable {
             }
             
             // carica le statistiche utente usando oggetti GameSessionSummary
-            List<GameSessionSummary> summaries = gameIntegrationService.getCurrentUserGameSessionSummaries();
+            List<GameSessionSummary> summaries = gameIntegrationService.getUserGameSessionSummaries(currentUser.getId());
             updateUserStatsFromSummaries(summaries);
         } else {
             if (userWelcomeLabel != null) {
@@ -212,7 +212,8 @@ public class LeaderboardController implements Initializable {
         
         UserSession userSession = UserSession.getInstance();
         if (userSession.isLoggedIn()) {
-            List<GameSessionSummary> summaries = gameIntegrationService.getCurrentUserGameSessionSummaries();
+            User currentUser = userSession.getCurrentUser();
+            List<GameSessionSummary> summaries = gameIntegrationService.getUserGameSessionSummaries(currentUser.getId());
             ObservableList<GameSessionSummary> tableData = FXCollections.observableArrayList(summaries);
             gameSessionsTable.setItems(tableData);
         }

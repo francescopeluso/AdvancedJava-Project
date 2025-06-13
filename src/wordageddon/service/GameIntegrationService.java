@@ -5,12 +5,10 @@ import wordageddon.dao.UserDAO;
 import wordageddon.dao.GameSessionDAO;
 import wordageddon.dao.AnswerDAO;
 import wordageddon.dao.Database;
-import wordageddon.model.User;
 import wordageddon.model.GameSession;
 import wordageddon.model.GameSessionSummary;
 import wordageddon.model.UserLeaderboardEntry;
 import wordageddon.model.Answer;
-import wordageddon.util.PasswordUtils;
 import java.util.List;
 import java.util.Collections;
 
@@ -31,68 +29,6 @@ public class GameIntegrationService {
         this.userDAO = DAOFactory.getUserDAO();
         this.gameSessionDAO = DAOFactory.getGameSessionDAO();
         this.answerDAO = DAOFactory.getAnswerDAO();
-    }
-    
-    /**
-     * Registers a new user.
-     * 
-     * @param username the username
-     * @param firstName the first name
-     * @param lastName the last name
-     * @param password the password
-     * @param email the email
-     * @param isAdmin whether the user is an admin
-     * @return true if registration is successful, false if user already exists
-     */
-    public boolean registerUser(String username, String firstName, String lastName, String password, String email, boolean isAdmin) {
-        try {
-            if (userDAO.userExists(username)) {
-                return false;
-            }
-            
-            // Crea un hash sicuro della password prima di memorizzarla
-            String hashedPassword = PasswordUtils.hashPassword(password);
-            
-            userDAO.addUser(username, firstName, lastName, hashedPassword, email, isAdmin);
-            return true;
-        } catch (Exception e) {
-            System.err.println("Error registering user: " + e.getMessage());
-            return false;
-        }
-    }
-    
-    /**
-     * Authenticates a user login using email and password.
-     * 
-     * // autentica l'utente verificando email e password
-     * 
-     * @param email the user's email address for login
-     * @param password the plaintext password to verify
-     * @return the User object if authentication is successful, null otherwise
-     */
-    public User authenticateUser(String email, String password) {
-        try {
-            User user = userDAO.getUserByEmail(email);
-            if (user == null) {
-                return null; // utente non trovato
-            }
-            
-            String storedPassword = user.getPassword();
-            
-            // verifica la password usando l'hash memorizzato nel database
-            boolean isAuthenticated = PasswordUtils.verifyPassword(password, storedPassword);
-            
-            if (isAuthenticated) {
-                // Imposta la sessione utente
-                UserSession.getInstance().setCurrentUser(user);
-                return user;
-            }
-            
-            return null;
-        } catch (Exception e) {
-            System.err.println("Error authenticating user: " + e.getMessage());
-            return null;
-        }
     }
     
     /**
@@ -136,42 +72,18 @@ public class GameIntegrationService {
     }
     
     /**
-     * Checks if a username is available.
-     * 
-     * @param username the username to check
-     * @return true if available, false if already taken
-     */
-    public boolean isUsernameAvailable(String username) {
-        try {
-            return !userDAO.userExists(username);
-        } catch (Exception e) {
-            System.err.println("Error checking username availability: " + e.getMessage());
-            return false;
-        }
-    }
-    
-    /**
      * Updates user information.
      * 
      * @param username the username
      * @param firstName the new first name
      * @param lastName the new last name
-     * @param password the new password
      * @param email the new email
      * @param isAdmin whether the user is an admin
      * @return true if update is successful, false otherwise
      */
-    public boolean updateUser(String username, String firstName, String lastName, String password, String email, boolean isAdmin) {
+    public boolean updateUser(String username, String firstName, String lastName, String email, boolean isAdmin) {
         try {
-            // Crea un hash sicuro della password prima di memorizzarla
-            String hashedPassword = password;
-            
-            // Solo se la password è stata fornita, hash la nuova password
-            if (password != null && !password.isEmpty()) {
-                hashedPassword = PasswordUtils.hashPassword(password);
-            }
-            
-            userDAO.updateUser(username, firstName, lastName, hashedPassword, email, isAdmin);
+            userDAO.updateUser(username, firstName, lastName, null, email, isAdmin);
             return true;
         } catch (Exception e) {
             System.err.println("Error updating user: " + e.getMessage());
@@ -180,34 +92,25 @@ public class GameIntegrationService {
     }
     
     /**
-     * Saves a completed game session for the current logged-in user.
+     * Saves a completed game session for a specific user.
      * 
+     * @param userId the user ID
      * @param gameSession the completed game session
      * @return the session ID if saved successfully, -1 otherwise
      */
-    public int saveCurrentUserGameSession(GameSession gameSession) {
-        UserSession userSession = UserSession.getInstance();
-        if (!userSession.isLoggedIn()) {
-            System.err.println("Cannot save game session: No user logged in");
-            return -1;
-        }
-        
-        return saveGameSession(userSession.getCurrentUserId(), gameSession);
+    public int saveUserGameSession(int userId, GameSession gameSession) {
+        return saveGameSession(userId, gameSession);
     }
     
     /**
-     * Gets all game sessions for the current logged-in user.
+     * Gets all game sessions for a specific user.
      * 
-     * @return list of game sessions, empty list if none found or no user logged in
+     * @param userId the user ID
+     * @return list of game sessions, empty list if none found
      */
-    public List<GameSession> getCurrentUserGameSessions() {
-        UserSession userSession = UserSession.getInstance();
-        if (!userSession.isLoggedIn()) {
-            return Collections.emptyList(); // lista vuota
-        }
-        
+    public List<GameSession> getUserGameSessions(int userId) {
         try {
-            return gameSessionDAO.getGameSessionsByUser(userSession.getCurrentUserId());
+            return gameSessionDAO.getGameSessionsByUser(userId);
         } catch (Exception e) {
             System.err.println("Error retrieving user game sessions: " + e.getMessage());
             return Collections.emptyList();
@@ -215,37 +118,17 @@ public class GameIntegrationService {
     }
     
     /**
-     * Gets game session summaries for the current logged-in user.
-     * This method returns lightweight summary objects instead of full GameSession objects,
-     * avoiding the "Questions cannot be null or empty" constructor issue.
-     * 
-     * @return list of game session summaries, empty list if none found or no user logged in
-     */
-    public List<GameSessionSummary> getCurrentUserGameSessionSummaries() {
-        UserSession userSession = UserSession.getInstance();
-        if (!userSession.isLoggedIn()) {
-            return Collections.emptyList();
-        }
-        
-        try {
-            return gameSessionDAO.getGameSessionSummariesByUser(userSession.getCurrentUserId());
-        } catch (Exception e) {
-            System.err.println("Error retrieving user game session summaries: " + e.getMessage());
-            return Collections.emptyList();
-        }
-    }
-
-    /**
-     * Gets all game sessions for a specific user.
+     * Gets game session summaries for a specific user.
+     * This method returns lightweight summary objects instead of full GameSession objects.
      * 
      * @param userId the user ID
-     * @return list of game sessions for the user
+     * @return list of game session summaries, empty list if none found
      */
-    public List<GameSession> getUserGameSessions(int userId) {
+    public List<GameSessionSummary> getUserGameSessionSummaries(int userId) {
         try {
-            return gameSessionDAO.getGameSessionsByUser(userId);
+            return gameSessionDAO.getGameSessionSummariesByUser(userId);
         } catch (Exception e) {
-            System.err.println("Error retrieving game sessions for user " + userId + ": " + e.getMessage());
+            System.err.println("Error retrieving user game session summaries: " + e.getMessage());
             return Collections.emptyList();
         }
     }

@@ -15,8 +15,6 @@ import java.util.stream.Collectors;
 
 /**
  * Unified service for document management, processing and persistence.
- * Combines the functionality of AdminDocumentService, DocumentProcessingTask,
- * and DocumentTermMatrixPersistenceService.
  * 
  * @author Gregorio Barberio, Francesco Peluso, Davide Quaranta, Ciro Ronca
  * @version 1.0

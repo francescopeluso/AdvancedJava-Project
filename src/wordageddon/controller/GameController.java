@@ -30,6 +30,8 @@ import wordageddon.service.DocumentLoadingService;
 import wordageddon.service.GameIntegrationService;
 import wordageddon.service.DocumentServices;
 import wordageddon.service.QuestionGeneratorService;
+import wordageddon.service.UserSession;
+import wordageddon.model.User;
 
 import java.io.File;
 import java.io.IOException;
@@ -941,10 +943,14 @@ public class GameController {
             // salva la sessione di gioco nel database
             if (currentGameSession.isCompleted()) {
                 try {
-                    int sessionId = gameIntegrationService.saveCurrentUserGameSession(currentGameSession);
-                    if (sessionId > 0) {
-                    } else {
-                        System.err.println("Errore nel salvare la sessione di gioco");
+                    UserSession userSession = UserSession.getInstance();
+                    if (userSession.isLoggedIn()) {
+                        User currentUser = userSession.getCurrentUser();
+                        int sessionId = gameIntegrationService.saveUserGameSession(currentUser.getId(), currentGameSession);
+                        if (sessionId > 0) {
+                        } else {
+                            System.err.println("Errore nel salvare la sessione di gioco");
+                        }
                     }
                 } catch (Exception e) {
                     System.err.println("Errore nel salvare la sessione di gioco: " + e.getMessage());
