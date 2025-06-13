@@ -1,0 +1,1 @@
+Nell'ultima pagina della relazione sono disponibili delle credenziali di default per un utente admin e per un utente demo.
