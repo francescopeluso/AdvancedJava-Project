@@ -20,7 +20,7 @@ public interface GameSessionDAO {
      * @param language the language used in the session
      * @return the ID of the created session
      */
-    int addGameSession(int userId, int score, String difficulty, String language);
+    int addGameSession(int userId, double score, String difficulty, String language);
 
     /**
      * Retrieves a game session by its ID.
@@ -44,7 +44,7 @@ public interface GameSessionDAO {
      * @param sessionId the ID of the session
      * @param score the new score
      */
-    void updateSessionScore(int sessionId, int score);
+    void updateSessionScore(int sessionId, double score);
 
     /**
      * Deletes a game session from the database.

@@ -104,8 +104,8 @@ public class GameIntegrationService {
      */
     public int saveGameSession(int userId, GameSession gameSession) {
         try {
-            // calcola il punteggio finale
-            int finalScore = (int) Math.round(gameSession.getTotalScore());
+            // calcola il punteggio finale mantenendo i decimali
+            double finalScore = gameSession.getTotalScore();
             
             // salva la sessione di gioco
             int sessionId = gameSessionDAO.addGameSession(

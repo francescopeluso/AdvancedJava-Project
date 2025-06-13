@@ -33,14 +33,14 @@ import java.util.Date;
 public class GameSessionDAOSQLite implements GameSessionDAO {
 
     @Override
-    public int addGameSession(int userId, int score, String difficulty, String language) {
+    public int addGameSession(int userId, double score, String difficulty, String language) {
         String sql = "INSERT INTO game_sessions (user_id, score, difficulty, language) VALUES (?, ?, ?, ?)";
         
         try (Connection conn = Database.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             pstmt.setInt(1, userId);
-            pstmt.setInt(2, score);
+            pstmt.setDouble(2, score);
             pstmt.setString(3, difficulty);
             pstmt.setString(4, language);
             
@@ -113,13 +113,13 @@ public class GameSessionDAOSQLite implements GameSessionDAO {
     }
 
     @Override
-    public void updateSessionScore(int sessionId, int score) {
+    public void updateSessionScore(int sessionId, double score) {
         String sql = "UPDATE game_sessions SET score = ? WHERE id = ?";
         
         try (Connection conn = Database.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setInt(1, score);
+            pstmt.setDouble(1, score);
             pstmt.setInt(2, sessionId);
             
             pstmt.executeUpdate();
@@ -205,7 +205,7 @@ public class GameSessionDAOSQLite implements GameSessionDAO {
                 while (rs.next()) {
                     int sessionId = rs.getInt("id");
                     String difficulty = rs.getString("difficulty");
-                    int score = rs.getInt("score");
+                    double score = rs.getDouble("score");
                     String language = rs.getString("language");
                     Date createdAt = new Date(rs.getTimestamp("created_at").getTime());
                     
@@ -245,7 +245,7 @@ public class GameSessionDAOSQLite implements GameSessionDAO {
             
             while (rs.next()) {
                 String username = rs.getString("username");
-                int totalPoints = rs.getInt("total_points");
+                double totalPoints = rs.getDouble("total_points");
                 leaderboard.add(new UserLeaderboardEntry(username, totalPoints));
             }
         } catch (SQLException e) {

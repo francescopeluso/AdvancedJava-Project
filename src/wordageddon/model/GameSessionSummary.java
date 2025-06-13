@@ -27,7 +27,7 @@ public class GameSessionSummary {
     private String difficulty;
     
     /** Final calculated score for the session */
-    private int score;
+    private double score;
     
     /** Language used during the game session */
     private String language;
@@ -59,7 +59,7 @@ public class GameSessionSummary {
      * @param correctAnswers the number of questions answered correctly
      * @param duration the duration of the session in milliseconds
      */
-    public GameSessionSummary(int sessionId, int userId, String difficulty, int score, 
+    public GameSessionSummary(int sessionId, int userId, String difficulty, double score, 
                             String language, Date createdAt, int totalQuestions, 
                             int correctAnswers, long duration) {
         this.sessionId = sessionId;
@@ -77,7 +77,7 @@ public class GameSessionSummary {
     public int getSessionId() { return sessionId; }
     public int getUserId() { return userId; }
     public String getDifficulty() { return difficulty; }
-    public int getScore() { return score; }
+    public double getScore() { return score; }
     public String getLanguage() { return language; }
     public Date getCreatedAt() { return createdAt; }
     public int getTotalQuestions() { return totalQuestions; }

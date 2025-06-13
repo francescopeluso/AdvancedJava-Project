@@ -55,7 +55,7 @@ public class LeaderboardController implements Initializable {
     @FXML private TableView<UserLeaderboardEntry> globalLeaderboardTable;
     @FXML private TableColumn<UserLeaderboardEntry, Integer> rankColumn;
     @FXML private TableColumn<UserLeaderboardEntry, String> usernameColumn;
-    @FXML private TableColumn<UserLeaderboardEntry, Integer> totalPointsColumn;
+    @FXML private TableColumn<UserLeaderboardEntry, Double> totalPointsColumn;
     @FXML private Button refreshGlobalButton;
     
     // User game sessions table
@@ -100,7 +100,20 @@ public class LeaderboardController implements Initializable {
             new SimpleStringProperty(cellData.getValue().getUsername()));
         
         totalPointsColumn.setCellValueFactory(cellData -> 
-            new SimpleIntegerProperty(cellData.getValue().getTotalPoints()).asObject());
+            new SimpleDoubleProperty(cellData.getValue().getTotalPoints()).asObject());
+        
+        // Format total points to show 2 decimal places
+        totalPointsColumn.setCellFactory(column -> new TableCell<UserLeaderboardEntry, Double>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText("");
+                } else {
+                    setText(String.format("%.2f", item));
+                }
+            }
+        });
         
         globalLeaderboardTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
     }

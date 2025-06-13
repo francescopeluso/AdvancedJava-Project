@@ -17,7 +17,7 @@ public class UserLeaderboardEntry {
     private String username;
     
     /** Total accumulated points across all game sessions */
-    private int totalPoints;
+    private double totalPoints;
     
     /**
      * Default constructor for UserLeaderboardEntry.
@@ -34,7 +34,7 @@ public class UserLeaderboardEntry {
      * @param username the username to display in the leaderboard
      * @param totalPoints the total accumulated points for this user
      */
-    public UserLeaderboardEntry(String username, int totalPoints) {
+    public UserLeaderboardEntry(String username, double totalPoints) {
         this.username = username;
         this.totalPoints = totalPoints;
     }
@@ -68,7 +68,7 @@ public class UserLeaderboardEntry {
      * 
      * @return the total points across all game sessions
      */
-    public int getTotalPoints() {
+    public double getTotalPoints() {
         return totalPoints;
     }
     
@@ -79,7 +79,7 @@ public class UserLeaderboardEntry {
      * 
      * @param totalPoints the total points to set
      */
-    public void setTotalPoints(int totalPoints) {
+    public void setTotalPoints(double totalPoints) {
         this.totalPoints = totalPoints;
     }
 }
